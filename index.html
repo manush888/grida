@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grida — Photo Layout Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #222; --surface3: #2a2a2a;
+    --border: #333; --border2: #404040;
+    --accent: #e8ff5a; --accent-dim: #b8cc3a;
+    --text: #f0f0f0; --text2: #888; --text3: #555;
+    --danger: #ff5a5a;
+    --sidebar-w: 220px; --props-w: 230px; --topbar-h: 48px;
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; display:flex; flex-direction:column; font-size:13px; user-select:none; }
+
+  /* TOPBAR */
+  #topbar { height:var(--topbar-h); background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0; z-index:100; }
+  #logo { font-family:'DM Mono',monospace; font-size:15px; font-weight:500; color:var(--accent); letter-spacing:-0.03em; margin-right:4px; }
+  .top-sep { width:1px; height:20px; background:var(--border); }
+  .top-btn { height:28px; padding:0 12px; border-radius:6px; border:1px solid var(--border2); background:var(--surface2); color:var(--text); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:12px; display:flex; align-items:center; gap:6px; transition:background .15s; white-space:nowrap; }
+  .top-btn:hover { background:var(--surface3); }
+  .top-btn.accent { background:var(--accent); color:#0f0f0f; border-color:var(--accent); font-weight:500; }
+  .top-btn.accent:hover { background:var(--accent-dim); border-color:var(--accent-dim); }
+  .top-btn svg { width:13px; height:13px; flex-shrink:0; }
+  #topbar-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
+  #format-row { display:flex; align-items:center; gap:6px; }
+  #format-label { color:var(--text2); font-size:11px; }
+  .fmt-btn { height:24px; padding:0 10px; border-radius:4px; border:1px solid var(--border); background:transparent; color:var(--text2); font-size:11px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+  .fmt-btn:hover { border-color:var(--border2); color:var(--text); }
+  .fmt-btn.active { background:var(--accent); color:#0f0f0f; border-color:var(--accent); font-weight:500; }
+
+  /* LAYOUT */
+  #main { display:flex; flex:1; overflow:hidden; }
+
+  /* SIDEBAR */
+  #sidebar { width:var(--sidebar-w); background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; flex-shrink:0; }
+  .sidebar-section { padding:14px 14px 10px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .sidebar-section-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:10px; }
+  .sidebar-btn { width:100%; height:34px; border-radius:7px; border:1px dashed var(--border2); background:transparent; color:var(--text2); font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:8px; padding:0 10px; transition:all .15s; margin-bottom:6px; }
+  .sidebar-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(232,255,90,.04); }
+  .sidebar-btn svg { width:14px; height:14px; }
+
+  /* LAYERS */
+  #layers-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; border-bottom:1px solid var(--border); }
+  #layers-header { padding:12px 14px 6px; flex-shrink:0; }
+  #layers-list { flex:1; overflow-y:auto; padding:6px 8px 8px; }
+  #layers-list::-webkit-scrollbar { width:4px; }
+  #layers-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  .layer-item { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; transition:background .1s; border:1px solid transparent; margin-bottom:2px; }
+  .layer-item:hover { background:var(--surface2); }
+  .layer-item.selected { background:rgba(232,255,90,.08); border-color:rgba(232,255,90,.25); }
+  .layer-thumb { width:28px; height:28px; border-radius:4px; background:var(--surface3); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:12px; border:1px solid var(--border); }
+  .layer-thumb img { width:100%; height:100%; object-fit:cover; }
+  .layer-name { font-size:12px; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .layer-del { width:20px; height:20px; border-radius:4px; border:none; background:transparent; color:var(--text3); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; line-height:1; transition:all .1s; flex-shrink:0; }
+  .layer-del:hover { background:rgba(255,90,90,.15); color:var(--danger); }
+  #layers-empty { padding:20px 12px; text-align:center; color:var(--text3); font-size:12px; line-height:1.6; }
+
+  /* CANVAS */
+  #canvas-wrap { flex:1; overflow:auto; background:#0a0a0a; display:flex; align-items:center; justify-content:center; position:relative; }
+  #canvas-wrap::-webkit-scrollbar { width:8px; height:8px; }
+  #canvas-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  #canvas-bg { position:relative; flex-shrink:0; margin:40px; }
+  #canvas { position:relative; background:#fff; overflow:hidden; box-shadow:0 0 0 1px rgba(255,255,255,.08),0 32px 80px rgba(0,0,0,.7); }
+  .canvas-hint { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; pointer-events:none; }
+  .canvas-hint-icon { font-size:36px; opacity:.12; }
+  .canvas-hint-text { font-size:13px; color:#aaa; opacity:.3; }
+
+  /* ELEMENTS */
+  .el { position:absolute; cursor:default; outline:none; }
+  .el.selected > .el-inner { outline:2px solid var(--accent); outline-offset:0; }
+  .el-inner { width:100%; height:100%; overflow:hidden; position:relative; }
+
+  .el-photo .el-inner { background:#e0e0e0; }
+  .el-photo img { position:absolute; transform-origin:center center; pointer-events:none; user-select:none; -webkit-user-drag:none; }
+  .photo-upload-prompt { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; background:#ddd; cursor:pointer; transition:background .15s; }
+  .photo-upload-prompt:hover { background:#ccc; }
+  .photo-upload-prompt svg { width:28px; height:28px; color:#999; }
+  .photo-upload-prompt span { font-size:11px; color:#999; }
+
+  .el-text .el-inner { background:transparent; display:flex; align-items:flex-start; }
+  .el-text-content { width:100%; min-height:100%; outline:none; border:none; background:transparent; font-family:inherit; line-height:1.3; word-break:break-word; white-space:pre-wrap; }
+
+  /* HANDLES — only visible when selected */
+  .resize-handle { position:absolute; width:10px; height:10px; background:#fff; border:2px solid var(--accent); border-radius:2px; z-index:10; display:none; }
+  .el.selected .resize-handle { display:block; }
+  .resize-handle.se { bottom:-5px; right:-5px; cursor:se-resize; }
+  .resize-handle.sw { bottom:-5px; left:-5px; cursor:sw-resize; }
+  .resize-handle.ne { top:-5px; right:-5px; cursor:ne-resize; }
+  .resize-handle.nw { top:-5px; left:-5px; cursor:nw-resize; }
+  .resize-handle.n  { top:-5px; left:50%; transform:translateX(-50%); cursor:n-resize; }
+  .resize-handle.s  { bottom:-5px; left:50%; transform:translateX(-50%); cursor:s-resize; }
+  .resize-handle.e  { right:-5px; top:50%; transform:translateY(-50%); cursor:e-resize; }
+  .resize-handle.w  { left:-5px; top:50%; transform:translateY(-50%); cursor:w-resize; }
+
+  /* Frame rotation handle — above element */
+  .rotate-handle { position:absolute; width:18px; height:18px; top:-30px; left:50%; transform:translateX(-50%); cursor:crosshair; display:none; z-index:11; align-items:center; justify-content:center; }
+  .el.selected .rotate-handle { display:flex; }
+  .rotate-handle svg { width:14px; height:14px; color:var(--accent); filter:drop-shadow(0 1px 3px rgba(0,0,0,.8)); }
+  .el.selected::before { content:''; position:absolute; top:-22px; left:50%; width:1px; height:18px; background:var(--accent); opacity:.5; pointer-events:none; }
+
+  /* Photo rotate handle — bottom-right inside frame */
+  .photo-rot-handle { position:absolute; bottom:5px; right:5px; width:22px; height:22px; background:rgba(0,0,0,.6); border-radius:5px; cursor:crosshair; display:none; z-index:11; align-items:center; justify-content:center; }
+  .el-photo.selected .photo-rot-handle { display:flex; }
+  .photo-rot-handle svg { width:13px; height:13px; color:#fff; }
+
+  /* PROPS */
+  #props { width:var(--props-w); background:var(--surface); border-left:1px solid var(--border); overflow-y:auto; flex-shrink:0; display:flex; flex-direction:column; }
+  #props::-webkit-scrollbar { width:4px; }
+  #props::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  .props-section { padding:14px; border-bottom:1px solid var(--border); }
+  .props-section-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:12px; }
+  .prop-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .prop-label { font-size:11px; color:var(--text2); width:36px; flex-shrink:0; }
+  .prop-input { flex:1; height:28px; background:var(--surface2); border:1px solid var(--border); border-radius:5px; color:var(--text); font-family:'DM Mono',monospace; font-size:11px; padding:0 8px; outline:none; transition:border-color .15s; }
+  .prop-input:focus { border-color:var(--accent); }
+  .prop-input[type="color"] { padding:2px 4px; cursor:pointer; }
+  .prop-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px; }
+  .prop-group { display:flex; flex-direction:column; gap:4px; }
+  .prop-group-label { font-size:10px; color:var(--text3); }
+  .prop-select { height:28px; background:var(--surface2); border:1px solid var(--border); border-radius:5px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:11px; padding:0 6px; outline:none; cursor:pointer; appearance:none; width:100%; }
+  .prop-select:focus { border-color:var(--accent); }
+  .props-empty { flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:var(--text3); font-size:11px; text-align:center; padding:24px; line-height:1.6; }
+  .slider-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .slider-label { font-size:11px; color:var(--text2); width:52px; flex-shrink:0; }
+  input[type="range"].prop-slider { flex:1; height:3px; appearance:none; background:var(--border2); border-radius:2px; outline:none; cursor:pointer; }
+  input[type="range"].prop-slider::-webkit-slider-thumb { appearance:none; width:12px; height:12px; border-radius:50%; background:var(--accent); cursor:pointer; }
+  .slider-val { font-size:11px; font-family:'DM Mono',monospace; color:var(--text2); min-width:32px; text-align:right; }
+
+  /* MODAL */
+  #modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; align-items:center; justify-content:center; }
+  #modal-overlay.open { display:flex; }
+  #modal { background:var(--surface); border:1px solid var(--border2); border-radius:12px; padding:24px; width:300px; }
+  #modal h3 { font-size:14px; font-weight:500; margin-bottom:16px; }
+  .modal-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .modal-label { font-size:12px; color:var(--text2); width:60px; }
+  .modal-input { flex:1; height:32px; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; padding:0 10px; outline:none; }
+  .modal-input:focus { border-color:var(--accent); }
+  .modal-btns { display:flex; gap:8px; margin-top:16px; }
+  .modal-btn { flex:1; height:34px; border-radius:7px; border:1px solid var(--border2); background:var(--surface2); color:var(--text); font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; transition:all .15s; }
+  .modal-btn:hover { background:var(--surface3); }
+  .modal-btn.confirm { background:var(--accent); color:#0f0f0f; border-color:var(--accent); font-weight:500; }
+  .modal-btn.confirm:hover { background:var(--accent-dim); }
+
+  #scale-info { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:4px 12px; font-size:11px; font-family:'DM Mono',monospace; color:var(--text2); z-index:50; pointer-events:none; }
+  #file-input { display:none; }
+</style>
+</head>
+<body>
+<input type="file" id="file-input" accept="image/*">
+
+<div id="topbar">
+  <span id="logo">grida.</span>
+  <div class="top-sep"></div>
+  <div id="format-row">
+    <span id="format-label">Canvas:</span>
+    <button class="fmt-btn active" onclick="setFormat('square',this)">1:1</button>
+    <button class="fmt-btn" onclick="setFormat('story',this)">9:16</button>
+    <button class="fmt-btn" onclick="setFormat('custom',this)">Custom</button>
+  </div>
+  <div id="topbar-right">
+    <button class="top-btn" onclick="undo()" title="Ctrl+Z">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h7a4 4 0 1 1 0 8H6"/><polyline points="5,3 2,6 5,9"/></svg>Undo
+    </button>
+    <button class="top-btn accent" id="export-btn" onclick="exportCanvas()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v9M5 8l3 3 3-3M2 13h12"/></svg>Export PNG
+    </button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Add</div>
+      <button class="sidebar-btn" onclick="addPhotoFrame()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 11l3-3 3 3 2-2 4 4"/><circle cx="10.5" cy="5.5" r="1.5"/></svg>Photo frame
+      </button>
+      <button class="sidebar-btn" onclick="addText()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M8 4v9M5 13h6"/></svg>Text overlay
+      </button>
+    </div>
+    <div id="layers-wrap">
+      <div id="layers-header">
+        <div class="sidebar-section-label">Layers</div>
+      </div>
+      <div id="layers-list">
+        <div id="layers-empty" style="padding:20px 12px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;">
+          No elements yet.<br>Add a photo frame or text to start.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="canvas-wrap">
+    <div id="canvas-bg">
+      <div id="canvas">
+        <div class="canvas-hint" id="canvas-hint">
+          <div class="canvas-hint-icon">🖼</div>
+          <div class="canvas-hint-text">Add a photo frame to get started</div>
+        </div>
+      </div>
+    </div>
+    <div id="scale-info">600 × 600 px</div>
+  </div>
+
+  <div id="props">
+    <div class="props-empty" id="props-empty">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      Select an element<br>to edit its properties
+    </div>
+    <div id="props-content" style="display:none;"></div>
+  </div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal">
+    <h3>Custom canvas size</h3>
+    <div class="modal-row"><span class="modal-label">Width (px)</span><input class="modal-input" type="number" id="custom-w" value="1200" min="100" max="4000"></div>
+    <div class="modal-row"><span class="modal-label">Height (px)</span><input class="modal-input" type="number" id="custom-h" value="800" min="100" max="4000"></div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="applyCustomSize()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let elements = [];
+let selectedId = null;
+let nextId = 1;
+let historyStack = [];
+let canvasW = 600, canvasH = 600;
+let scale = 1;
+
+let frameDrag  = null;  // middle-mouse: move whole frame
+let textDrag   = null;  // left-drag on text: move frame
+let photoPan   = null;  // left-drag on photo with img: pan inside
+let resizing   = null;
+let frameRot   = null;  // frame rotation
+let photoRot   = null;  // photo-inside-frame rotation
+let historyDirty = false;
+
+// ═══════════════════════════════════════════════════
+//  CANVAS SIZING
+// ═══════════════════════════════════════════════════
+function updateCanvasDisplay() {
+  const wrap = document.getElementById('canvas-wrap');
+  const aw = wrap.clientWidth - 80, ah = wrap.clientHeight - 80;
+  scale = Math.max(0.1, Math.min(1, aw / canvasW, ah / canvasH));
+  const cv = document.getElementById('canvas');
+  cv.style.width = canvasW + 'px';
+  cv.style.height = canvasH + 'px';
+  cv.style.transform = `scale(${scale})`;
+  cv.style.transformOrigin = 'center center';
+  document.getElementById('scale-info').textContent =
+    `${canvasW} × ${canvasH} px  ·  ${Math.round(scale*100)}%`;
+}
+
+function setFormat(fmt, btn) {
+  document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (fmt === 'square') { canvasW=600; canvasH=600; updateCanvasDisplay(); }
+  else if (fmt === 'story') { canvasW=337; canvasH=600; updateCanvasDisplay(); }
+  else document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function applyCustomSize() {
+  const w = parseInt(document.getElementById('custom-w').value);
+  const h = parseInt(document.getElementById('custom-h').value);
+  if (w >= 100 && h >= 100) { canvasW=Math.min(w,4000); canvasH=Math.min(h,4000); updateCanvasDisplay(); }
+  closeModal();
+}
+
+// ═══════════════════════════════════════════════════
+//  ADD ELEMENTS
+// ═══════════════════════════════════════════════════
+function addPhotoFrame() {
+  saveHistory();
+  const n = elements.filter(e=>e.type==='photo').length;
+  const id = 'el_' + (nextId++);
+  const sz = Math.min(200, canvasW-80, canvasH-80);
+  elements.push({
+    id, type:'photo', name:'Photo '+(n+1),
+    x:40+n*22, y:40+n*22, w:sz, h:sz, rotation:0,
+    imgSrc:null, imgX:0, imgY:0, imgScale:1, imgRotation:0,
+    opacity:100, borderRadius:0
+  });
+  renderEl(elements[elements.length-1]);
+  select(id); updateLayers();
+  document.getElementById('canvas-hint').style.display = 'none';
+}
+
+function addText() {
+  saveHistory();
+  const n = elements.filter(e=>e.type==='text').length;
+  const id = 'el_' + (nextId++);
+  elements.push({
+    id, type:'text', name:'Text '+(n+1),
+    x:40+n*22, y:40+n*22, w:200, h:60, rotation:0,
+    text:'Your text here', fontSize:32, fontWeight:'400',
+    color:'#ffffff', opacity:100, align:'left'
+  });
+  renderEl(elements[elements.length-1]);
+  select(id); updateLayers();
+  document.getElementById('canvas-hint').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════
+function renderEl(el) {
+  let dom = document.getElementById(el.id);
+  const isNew = !dom;
+  if (isNew) {
+    dom = document.createElement('div');
+    dom.id = el.id;
+    dom.className = 'el el-' + el.type;
+    dom.tabIndex = -1;
+    document.getElementById('canvas').appendChild(dom);
+    attachElEvents(dom, el);
+  }
+
+  // position / size / rotation / opacity
+  dom.style.cssText += '';
+  dom.style.left = el.x + 'px';
+  dom.style.top  = el.y + 'px';
+  dom.style.width  = el.w + 'px';
+  dom.style.height = el.h + 'px';
+  dom.style.transform = `rotate(${el.rotation||0}deg)`;
+  dom.style.transformOrigin = 'center center';
+  dom.style.opacity = el.opacity / 100;
+
+  // rebuild inner
+  dom.innerHTML = '';
+
+  const inner = document.createElement('div');
+  inner.className = 'el-inner';
+
+  if (el.type === 'photo') {
+    inner.style.borderRadius = (el.borderRadius||0) + 'px';
+    if (el.imgSrc) {
+      const img = document.createElement('img');
+      img.src = el.imgSrc;
+      img.draggable = false;
+      img.style.width  = (el.w * el.imgScale) + 'px';
+      img.style.height = 'auto';
+      img.style.left   = el.imgX + 'px';
+      img.style.top    = el.imgY + 'px';
+      img.style.transform = `rotate(${el.imgRotation||0}deg)`;
+      img.style.transformOrigin = 'center center';
+      inner.appendChild(img);
+
+      // photo rotate handle (inside frame, bottom-right)
+      const prh = document.createElement('div');
+      prh.className = 'photo-rot-handle';
+      prh.title = 'Rotate photo';
+      prh.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><polyline points="14,2 14,6 10,6"/></svg>`;
+      prh.addEventListener('mousedown', e => startPhotoRotate(e, el));
+      inner.appendChild(prh);
+    } else {
+      const p = document.createElement('div');
+      p.className = 'photo-upload-prompt';
+      p.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><span>Click to upload photo</span>`;
+      p.onclick = e => { e.stopPropagation(); triggerUpload(el.id); };
+      inner.appendChild(p);
+    }
+  } else if (el.type === 'text') {
+    const ta = document.createElement('div');
+    ta.className = 'el-text-content';
+    ta.contentEditable = 'true';
+    ta.textContent = el.text;
+    ta.style.fontSize   = el.fontSize + 'px';
+    ta.style.fontWeight = el.fontWeight;
+    ta.style.color      = el.color;
+    ta.style.textAlign  = el.align;
+    ta.style.minHeight  = el.h + 'px';
+    ta.style.cursor     = 'text';
+    ta.addEventListener('input', () => { el.text = ta.textContent; });
+    ta.addEventListener('mousedown', e => e.stopPropagation());
+    inner.appendChild(ta);
+  }
+
+  dom.appendChild(inner);
+
+  // resize handles
+  ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
+    const h = document.createElement('div');
+    h.className = 'resize-handle ' + dir;
+    h.addEventListener('mousedown', e => startResize(e, el, dir));
+    dom.appendChild(h);
+  });
+
+  // frame rotation handle (top-center, above element)
+  const rh = document.createElement('div');
+  rh.className = 'rotate-handle';
+  rh.title = 'Rotate frame (middle-mouse = move)';
+  rh.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><polyline points="14,2 14,6 10,6"/></svg>`;
+  rh.addEventListener('mousedown', e => startFrameRotate(e, el));
+  dom.appendChild(rh);
+
+  dom.classList.toggle('selected', selectedId === el.id);
+}
+
+// ═══════════════════════════════════════════════════
+//  ELEMENT EVENTS
+// ═══════════════════════════════════════════════════
+function attachElEvents(dom, el) {
+
+  // ── LEFT BUTTON ──
+  dom.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    if (e.target.classList.contains('resize-handle')) return;
+    if (e.target.closest('.rotate-handle')) return;
+    if (e.target.closest('.photo-rot-handle')) return;
+    if (e.target.closest('.photo-upload-prompt')) return;
+    if (e.target.classList.contains('el-text-content')) return;
+
+    e.preventDefault();
+    select(el.id);
+
+    if (el.type === 'photo' && el.imgSrc) {
+      // left drag → pan photo inside frame
+      photoPan = { el, startX:e.clientX, startY:e.clientY, origImgX:el.imgX, origImgY:el.imgY };
+    } else {
+      // left drag on empty photo frame or text → move frame
+      textDrag = { el, startX:e.clientX, startY:e.clientY, origX:el.x, origY:el.y };
+    }
+  });
+
+  // ── MIDDLE BUTTON → move frame ──
+  dom.addEventListener('mousedown', e => {
+    if (e.button !== 1) return;
+    e.preventDefault();
+    select(el.id);
+    frameDrag = { el, startX:e.clientX, startY:e.clientY, origX:el.x, origY:el.y };
+  });
+
+  // ── SCROLL → zoom photo ──
+  dom.addEventListener('wheel', e => {
+    if (el.type === 'photo' && el.imgSrc) {
+      e.preventDefault();
+      saveHistoryOnce();
+      el.imgScale = Math.max(0.05, Math.min(10, el.imgScale - e.deltaY * 0.002));
+      const img = dom.querySelector('img');
+      if (img) img.style.width = (el.w * el.imgScale) + 'px';
+      updatePropsPanel();
+    }
+  }, { passive: false });
+}
+
+// ═══════════════════════════════════════════════════
+//  GLOBAL MOUSE
+// ═══════════════════════════════════════════════════
+document.addEventListener('mousemove', e => {
+  if (frameDrag || textDrag) {
+    saveHistoryOnce();
+    const d = frameDrag || textDrag;
+    d.el.x = d.origX + (e.clientX - d.startX) / scale;
+    d.el.y = d.origY + (e.clientY - d.startY) / scale;
+    const dom = document.getElementById(d.el.id);
+    dom.style.left = d.el.x + 'px';
+    dom.style.top  = d.el.y + 'px';
+    updatePropsPanel();
+  }
+
+  if (photoPan) {
+    const { el, startX, startY, origImgX, origImgY } = photoPan;
+    el.imgX = origImgX + (e.clientX - startX) / scale;
+    el.imgY = origImgY + (e.clientY - startY) / scale;
+    const img = document.querySelector('#'+el.id+' img');
+    if (img) { img.style.left = el.imgX+'px'; img.style.top = el.imgY+'px'; }
+  }
+
+  if (resizing) handleResize(e);
+
+  if (frameRot) {
+    const { el, cx, cy, startAngle } = frameRot;
+    const a = Math.atan2(e.clientY-cy, e.clientX-cx) * 180/Math.PI;
+    el.rotation = a - startAngle;
+    document.getElementById(el.id).style.transform = `rotate(${el.rotation}deg)`;
+    updatePropsPanel();
+  }
+
+  if (photoRot) {
+    const { el, cx, cy, startAngle } = photoRot;
+    const a = Math.atan2(e.clientY-cy, e.clientX-cx) * 180/Math.PI;
+    el.imgRotation = a - startAngle;
+    const img = document.querySelector('#'+el.id+' img');
+    if (img) img.style.transform = `rotate(${el.imgRotation}deg)`;
+    updatePropsPanel();
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  frameDrag=null; textDrag=null; photoPan=null; resizing=null; frameRot=null; photoRot=null;
+  historyDirty = false;
+});
+
+// block middle-click scroll globally
+document.addEventListener('mousedown', e => { if(e.button===1) e.preventDefault(); }, {passive:false});
+
+// ═══════════════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════════════
+function startResize(e, el, dir) {
+  e.preventDefault(); e.stopPropagation();
+  saveHistory();
+  resizing = { el, dir, startX:e.clientX, startY:e.clientY, origX:el.x, origY:el.y, origW:el.w, origH:el.h };
+}
+function handleResize(e) {
+  const { el, dir, startX, startY, origX, origY, origW, origH } = resizing;
+  const dx = (e.clientX-startX)/scale, dy = (e.clientY-startY)/scale;
+  const minW=40, minH=30;
+  if (dir.includes('e')) el.w = Math.max(minW, origW+dx);
+  if (dir.includes('s')) el.h = Math.max(minH, origH+dy);
+  if (dir.includes('w')) { const nw=Math.max(minW,origW-dx); el.x=origX+(origW-nw); el.w=nw; }
+  if (dir.includes('n')) { const nh=Math.max(minH,origH-dy); el.y=origY+(origH-nh); el.h=nh; }
+  const dom = document.getElementById(el.id);
+  dom.style.left=el.x+'px'; dom.style.top=el.y+'px'; dom.style.width=el.w+'px'; dom.style.height=el.h+'px';
+  if (el.type==='photo' && el.imgSrc) { const img=dom.querySelector('img'); if(img) img.style.width=(el.w*el.imgScale)+'px'; }
+  if (el.type==='text') { const ta=dom.querySelector('.el-text-content'); if(ta) ta.style.minHeight=el.h+'px'; }
+  updatePropsPanel();
+}
+
+// ═══════════════════════════════════════════════════
+//  ROTATION
+// ═══════════════════════════════════════════════════
+function startFrameRotate(e, el) {
+  e.preventDefault(); e.stopPropagation();
+  saveHistory();
+  const rect = document.getElementById(el.id).getBoundingClientRect();
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  frameRot = { el, cx, cy, startAngle: Math.atan2(e.clientY-cy, e.clientX-cx)*180/Math.PI - (el.rotation||0) };
+}
+function startPhotoRotate(e, el) {
+  e.preventDefault(); e.stopPropagation();
+  saveHistory();
+  const inner = document.querySelector('#'+el.id+' .el-inner');
+  const rect  = inner.getBoundingClientRect();
+  const cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
+  photoRot = { el, cx, cy, startAngle: Math.atan2(e.clientY-cy, e.clientX-cx)*180/Math.PI - (el.imgRotation||0) };
+}
+
+// ═══════════════════════════════════════════════════
+//  SELECTION
+// ═══════════════════════════════════════════════════
+function select(id) {
+  if (selectedId === id) return;
+  const prev = selectedId; selectedId = id;
+  if (prev) { const d=document.getElementById(prev); if(d) d.classList.remove('selected'); }
+  if (id)   { const d=document.getElementById(id);   if(d) d.classList.add('selected'); }
+  updatePropsPanel(); updateLayers();
+}
+document.getElementById('canvas').addEventListener('mousedown', e => {
+  if (e.target===e.currentTarget || e.target.closest('.canvas-hint')) select(null);
+});
+
+// ═══════════════════════════════════════════════════
+//  UPLOAD
+// ═══════════════════════════════════════════════════
+let pendingUploadId = null;
+function triggerUpload(id) { pendingUploadId=id; document.getElementById('file-input').click(); }
+document.getElementById('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file || !pendingUploadId) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const el = elements.find(x=>x.id===pendingUploadId);
+    if (!el) return;
+    saveHistory();
+    el.imgSrc=ev.target.result; el.imgX=0; el.imgY=0; el.imgScale=1; el.imgRotation=0;
+    const img=new Image();
+    img.onload = () => { el.imgScale=el.w/img.naturalWidth; renderEl(el); updatePropsPanel(); updateLayers(); };
+    img.src = el.imgSrc;
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+});
+
+// ═══════════════════════════════════════════════════
+//  LAYERS  — BUG FIX: never wipe the static #layers-empty node
+// ═══════════════════════════════════════════════════
+function updateLayers() {
+  const list = document.getElementById('layers-list');
+  const emptyEl = document.getElementById('layers-empty');
+
+  // Remove all .layer-item nodes (not the static empty node)
+  list.querySelectorAll('.layer-item').forEach(n => n.remove());
+
+  if (elements.length === 0) {
+    if (emptyEl) emptyEl.style.display = '';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  // Render top-to-bottom = last element first
+  [...elements].reverse().forEach(el => {
+    const item = document.createElement('div');
+    item.className = 'layer-item' + (selectedId===el.id ? ' selected' : '');
+    item.dataset.id = el.id;
+
+    const thumb = document.createElement('div');
+    thumb.className = 'layer-thumb';
+    if (el.type==='photo' && el.imgSrc) {
+      const img=document.createElement('img'); img.src=el.imgSrc; thumb.appendChild(img);
+    } else if (el.type==='text') {
+      thumb.textContent='T';
+    } else {
+      thumb.innerHTML=`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>`;
+    }
+
+    const name=document.createElement('div'); name.className='layer-name'; name.textContent=el.name;
+
+    const del=document.createElement('button'); del.className='layer-del'; del.innerHTML='×'; del.title='Delete';
+    del.onclick = ev => { ev.stopPropagation(); deleteEl(el.id); };
+
+    item.appendChild(thumb); item.appendChild(name); item.appendChild(del);
+    item.onclick = () => select(el.id);
+    list.appendChild(item);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  DELETE
+// ═══════════════════════════════════════════════════
+function deleteEl(id) {
+  saveHistory();
+  elements = elements.filter(e=>e.id!==id);
+  const dom=document.getElementById(id); if(dom) dom.remove();
+  if (selectedId===id) selectedId=null;
+  updateLayers(); updatePropsPanel();
+  if (elements.length===0) document.getElementById('canvas-hint').style.display='';
+}
+document.addEventListener('keydown', e => {
+  const active=document.activeElement;
+  if ((e.key==='Delete'||e.key==='Backspace') && selectedId && active.tagName!=='INPUT' && !active.isContentEditable) deleteEl(selectedId);
+  if ((e.ctrlKey||e.metaKey) && e.key==='z') { e.preventDefault(); undo(); }
+});
+
+// ═══════════════════════════════════════════════════
+//  PROPS PANEL
+// ═══════════════════════════════════════════════════
+function updatePropsPanel() {
+  const empty=document.getElementById('props-empty'), content=document.getElementById('props-content');
+  const el=elements.find(e=>e.id===selectedId);
+  if (!el) { empty.style.display=''; content.style.display='none'; return; }
+  empty.style.display='none'; content.style.display=''; content.innerHTML='';
+
+  // position & size
+  const ps=sec('Position & Size');
+  ps.appendChild(r2(pg('X',numIn(Math.round(el.x),v=>{el.x=v;document.getElementById(el.id).style.left=v+'px';})),
+                    pg('Y',numIn(Math.round(el.y),v=>{el.y=v;document.getElementById(el.id).style.top=v+'px';}))));
+  ps.appendChild(r2(pg('W',numIn(Math.round(el.w),v=>{el.w=Math.max(20,v);renderEl(el);})),
+                    pg('H',numIn(Math.round(el.h),v=>{el.h=Math.max(20,v);renderEl(el);}))));
+  content.appendChild(ps);
+
+  // transform
+  const ts=sec('Transform');
+  ts.appendChild(slr('Frame °',el.rotation||0,-180,180,1,'°',v=>{
+    el.rotation=v; document.getElementById(el.id).style.transform=`rotate(${v}deg)`;
+  }));
+  content.appendChild(ts);
+
+  // visibility
+  const vs=sec('Visibility');
+  vs.appendChild(slr('Opacity',el.opacity,0,100,1,'%',v=>{
+    el.opacity=v; document.getElementById(el.id).style.opacity=v/100;
+  }));
+  content.appendChild(vs);
+
+  if (el.type==='photo') {
+    const ph=sec('Photo');
+    if (el.imgSrc) {
+      ph.appendChild(slr('Zoom',Math.round(el.imgScale*100),10,500,1,'%',v=>{
+        el.imgScale=v/100;
+        const img=document.querySelector('#'+el.id+' img'); if(img) img.style.width=(el.w*el.imgScale)+'px';
+      }));
+      ph.appendChild(slr('Photo °',el.imgRotation||0,-180,180,1,'°',v=>{
+        el.imgRotation=v;
+        const img=document.querySelector('#'+el.id+' img'); if(img) img.style.transform=`rotate(${v}deg)`;
+      }));
+    }
+    ph.appendChild(slr('Radius',el.borderRadius||0,0,500,1,'px',v=>{
+      el.borderRadius=v;
+      const inner=document.querySelector('#'+el.id+' .el-inner'); if(inner) inner.style.borderRadius=v+'px';
+    }));
+    const ub=document.createElement('button'); ub.className='sidebar-btn'; ub.style.marginTop='8px';
+    ub.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M8 2v9M5 4l3-3 3 3M2 13h12"/></svg> ${el.imgSrc?'Replace photo':'Upload photo'}`;
+    ub.onclick=()=>triggerUpload(el.id); ph.appendChild(ub); content.appendChild(ph);
+
+  } else if (el.type==='text') {
+    const tx=sec('Text');
+    tx.appendChild(slr('Size',el.fontSize,8,200,1,'px',v=>{
+      el.fontSize=v; const ta=document.querySelector('#'+el.id+' .el-text-content'); if(ta) ta.style.fontSize=v+'px';
+    }));
+    const cr=document.createElement('div'); cr.className='prop-row'; cr.innerHTML=`<span class="prop-label">Color</span>`;
+    const ci=document.createElement('input'); ci.type='color'; ci.className='prop-input'; ci.value=el.color;
+    ci.oninput=ev=>{el.color=ev.target.value; const ta=document.querySelector('#'+el.id+' .el-text-content'); if(ta) ta.style.color=ev.target.value;};
+    cr.appendChild(ci); tx.appendChild(cr);
+
+    const wr=document.createElement('div'); wr.className='prop-row'; wr.innerHTML=`<span class="prop-label">Weight</span>`;
+    const ws=document.createElement('select'); ws.className='prop-select';
+    [['300','Light'],['400','Regular'],['500','Medium'],['700','Bold']].forEach(([v,l])=>{
+      const o=document.createElement('option'); o.value=v; o.textContent=l; if(el.fontWeight===v) o.selected=true; ws.appendChild(o);
+    });
+    ws.onchange=ev=>{el.fontWeight=ev.target.value; const ta=document.querySelector('#'+el.id+' .el-text-content'); if(ta) ta.style.fontWeight=ev.target.value;};
+    wr.appendChild(ws); tx.appendChild(wr);
+
+    const ar=document.createElement('div'); ar.className='prop-row'; ar.innerHTML=`<span class="prop-label">Align</span>`;
+    const as=document.createElement('select'); as.className='prop-select';
+    [['left','Left'],['center','Center'],['right','Right']].forEach(([v,l])=>{
+      const o=document.createElement('option'); o.value=v; o.textContent=l; if(el.align===v) o.selected=true; as.appendChild(o);
+    });
+    as.onchange=ev=>{el.align=ev.target.value; const ta=document.querySelector('#'+el.id+' .el-text-content'); if(ta) ta.style.textAlign=ev.target.value;};
+    ar.appendChild(as); tx.appendChild(ar);
+    content.appendChild(tx);
+  }
+
+  const ds=document.createElement('div'); ds.style.padding='14px';
+  const db=document.createElement('button'); db.className='sidebar-btn';
+  db.style.cssText='border-color:rgba(255,90,90,.3);color:var(--danger);width:100%;';
+  db.innerHTML='× Delete element'; db.onclick=()=>deleteEl(el.id);
+  ds.appendChild(db); content.appendChild(ds);
+}
+
+// prop helpers
+function sec(label) { const s=document.createElement('div'); s.className='props-section'; const l=document.createElement('div'); l.className='props-section-label'; l.textContent=label; s.appendChild(l); return s; }
+function numIn(val,cb) { const i=document.createElement('input'); i.type='number'; i.className='prop-input'; i.value=val; i.oninput=e=>cb(parseFloat(e.target.value)||0); return i; }
+function r2(...gs) { const r=document.createElement('div'); r.className='prop-row-2'; gs.forEach(g=>r.appendChild(g)); return r; }
+function pg(label,inputEl) { const g=document.createElement('div'); g.className='prop-group'; const l=document.createElement('div'); l.className='prop-group-label'; l.textContent=label; g.appendChild(l); g.appendChild(inputEl); return g; }
+function slr(label,val,min,max,step,unit,cb) {
+  const r=document.createElement('div'); r.className='slider-row'; r.innerHTML=`<span class="slider-label">${label}</span>`;
+  const sl=document.createElement('input'); sl.type='range'; sl.className='prop-slider'; sl.min=min; sl.max=max; sl.step=step; sl.value=val;
+  const sv=document.createElement('span'); sv.className='slider-val'; sv.textContent=val+unit;
+  sl.oninput=e=>{const v=parseFloat(e.target.value); sv.textContent=v+unit; cb(v);}; r.appendChild(sl); r.appendChild(sv); return r;
+}
+
+// ═══════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════
+function saveHistory() {
+  historyStack.push(JSON.stringify(elements));
+  if (historyStack.length>50) historyStack.shift();
+  historyDirty=false;
+}
+function saveHistoryOnce() { if(!historyDirty){saveHistory();historyDirty=true;} }
+function undo() {
+  if (!historyStack.length) return;
+  document.getElementById('canvas').querySelectorAll('.el').forEach(d=>d.remove());
+  elements = JSON.parse(historyStack.pop());
+  elements.forEach(el=>renderEl(el));
+  updateLayers(); updatePropsPanel();
+  document.getElementById('canvas-hint').style.display = elements.length ? 'none' : '';
+}
+
+// ═══════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════
+async function exportCanvas() {
+  const btn=document.getElementById('export-btn');
+  btn.textContent='Exporting…'; btn.disabled=true;
+  const prevSel=selectedId;
+  if (prevSel){const d=document.getElementById(prevSel);if(d)d.classList.remove('selected');}
+  try {
+    const result=await html2canvas(document.getElementById('canvas'),{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,width:canvasW,height:canvasH});
+    const a=document.createElement('a'); a.download='grida-export.png'; a.href=result.toDataURL('image/png'); a.click();
+  } catch(e){alert('Export failed.');}
+  if (prevSel){const d=document.getElementById(prevSel);if(d)d.classList.add('selected');}
+  btn.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M8 2v9M5 8l3 3 3-3M2 13h12"/></svg> Export PNG`;
+  btn.disabled=false;
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+window.addEventListener('resize', updateCanvasDisplay);
+updateCanvasDisplay();
+</script>
+</body>
+</html>
