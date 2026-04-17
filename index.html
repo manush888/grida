@@ -2,178 +2,240 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Grida — Photo Layout Editor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #222; --surface3: #2a2a2a;
-    --border: #333; --border2: #404040;
-    --accent: #e8ff5a; --accent-dim: #b8cc3a;
-    --text: #f0f0f0; --text2: #888; --text3: #555;
-    --danger: #ff5a5a;
-    --sidebar-w: 220px; --props-w: 230px; --topbar-h: 48px;
-  }
-  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; display:flex; flex-direction:column; font-size:13px; user-select:none; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222;--surface3:#2a2a2a;
+  --border:#333;--border2:#404040;
+  --accent:#e8ff5a;--accent-dim:#b8cc3a;
+  --text:#f0f0f0;--text2:#888;--text3:#555;
+  --danger:#ff5a5a;--snap:#ff3cac;
+  --topbar-h:48px;--sidebar-w:220px;--props-w:230px;
+  --sheet-h:320px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;display:flex;flex-direction:column;font-size:13px;user-select:none;-webkit-user-select:none;touch-action:none;}
 
-  /* TOPBAR */
-  #topbar { height:var(--topbar-h); background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0; z-index:100; }
-  #logo { font-family:'DM Mono',monospace; font-size:15px; font-weight:500; color:var(--accent); letter-spacing:-0.03em; margin-right:4px; }
-  .top-sep { width:1px; height:20px; background:var(--border); }
-  .top-btn { height:28px; padding:0 12px; border-radius:6px; border:1px solid var(--border2); background:var(--surface2); color:var(--text); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:12px; display:flex; align-items:center; gap:6px; transition:background .15s; white-space:nowrap; }
-  .top-btn:hover { background:var(--surface3); }
-  .top-btn.accent { background:var(--accent); color:#0f0f0f; border-color:var(--accent); font-weight:500; }
-  .top-btn.accent:hover { background:var(--accent-dim); border-color:var(--accent-dim); }
-  .top-btn svg { width:13px; height:13px; flex-shrink:0; }
-  #topbar-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
-  #format-row { display:flex; align-items:center; gap:6px; }
-  #format-label { color:var(--text2); font-size:11px; }
-  .fmt-btn { height:24px; padding:0 10px; border-radius:4px; border:1px solid var(--border); background:transparent; color:var(--text2); font-size:11px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
-  .fmt-btn:hover { border-color:var(--border2); color:var(--text); }
-  .fmt-btn.active { background:var(--accent); color:#0f0f0f; border-color:var(--accent); font-weight:500; }
+/* ── TOPBAR ── */
+#topbar{height:var(--topbar-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:10px;flex-shrink:0;z-index:100;}
+#logo{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--accent);letter-spacing:-.03em;margin-right:2px;}
+.top-sep{width:1px;height:20px;background:var(--border);}
+.top-btn{height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;display:flex;align-items:center;gap:5px;transition:background .15s;white-space:nowrap;flex-shrink:0;}
+.top-btn:hover{background:var(--surface3);}
+.top-btn.accent{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:500;}
+.top-btn.accent:hover{background:var(--accent-dim);}
+.top-btn svg{width:13px;height:13px;flex-shrink:0;}
+#topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.fmt-btn{height:24px;padding:0 9px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.fmt-btn:hover{border-color:var(--border2);color:var(--text);}
+.fmt-btn.active{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:500;}
+#zoom-row{display:flex;align-items:center;gap:4px;}
+.zoom-btn{width:26px;height:26px;border-radius:5px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;}
+.zoom-btn:hover{background:var(--surface3);}
+#zoom-pct{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);min-width:36px;text-align:center;}
 
-  /* LAYOUT */
-  #main { display:flex; flex:1; overflow:hidden; }
+/* ── MAIN ── */
+#main{display:flex;flex:1;overflow:hidden;}
 
-  /* SIDEBAR */
-  #sidebar { width:var(--sidebar-w); background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; flex-shrink:0; }
-  .sidebar-section { padding:14px 14px 10px; border-bottom:1px solid var(--border); flex-shrink:0; }
-  .sidebar-section-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:10px; }
-  .sidebar-btn { width:100%; height:34px; border-radius:7px; border:1px dashed var(--border2); background:transparent; color:var(--text2); font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:8px; padding:0 10px; transition:all .15s; margin-bottom:6px; }
-  .sidebar-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(232,255,90,.04); }
-  .sidebar-btn svg { width:14px; height:14px; }
+/* ── SIDEBAR ── */
+#sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.sidebar-section{padding:12px 12px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sidebar-section-label{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.sidebar-btn{width:100%;height:32px;border-radius:7px;border:1px dashed var(--border2);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:7px;padding:0 10px;transition:all .15s;margin-bottom:5px;}
+.sidebar-btn:last-child{margin-bottom:0;}
+.sidebar-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(232,255,90,.04);}
+.sidebar-btn svg{width:13px;height:13px;}
+/* snap settings */
+#snap-row{display:flex;align-items:center;gap:8px;margin-top:4px;}
+#snap-toggle{width:32px;height:18px;border-radius:9px;background:var(--border2);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+#snap-toggle.on{background:var(--accent);}
+#snap-toggle::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .2s;}
+#snap-toggle.on::after{left:17px;}
+#snap-label{font-size:11px;color:var(--text2);}
+#snap-dist-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+#snap-dist-label{font-size:11px;color:var(--text2);flex-shrink:0;}
+#snap-dist{width:52px;height:24px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:0 6px;outline:none;}
+#snap-dist:focus{border-color:var(--accent);}
+#snap-dist-unit{font-size:11px;color:var(--text3);}
 
-  /* LAYERS */
-  #layers-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; border-bottom:1px solid var(--border); }
-  #layers-header { padding:12px 14px 6px; flex-shrink:0; }
-  #layers-list { flex:1; overflow-y:auto; padding:6px 8px 8px; }
-  #layers-list::-webkit-scrollbar { width:4px; }
-  #layers-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-  .layer-item { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; transition:background .1s; border:1px solid transparent; margin-bottom:2px; }
-  .layer-item:hover { background:var(--surface2); }
-  .layer-item.selected { background:rgba(232,255,90,.08); border-color:rgba(232,255,90,.25); }
-  .layer-thumb { width:28px; height:28px; border-radius:4px; background:var(--surface3); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:12px; border:1px solid var(--border); }
-  .layer-thumb img { width:100%; height:100%; object-fit:cover; }
-  .layer-name { font-size:12px; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .layer-del { width:20px; height:20px; border-radius:4px; border:none; background:transparent; color:var(--text3); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; line-height:1; transition:all .1s; flex-shrink:0; }
-  .layer-del:hover { background:rgba(255,90,90,.15); color:var(--danger); }
-  #layers-empty { padding:20px 12px; text-align:center; color:var(--text3); font-size:12px; line-height:1.6; }
+/* layers */
+#layers-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#layers-header{padding:10px 12px 4px;flex-shrink:0;}
+#layers-list{flex:1;overflow-y:auto;padding:4px 8px 8px;}
+#layers-list::-webkit-scrollbar{width:4px;}
+#layers-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.layer-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:6px;cursor:pointer;transition:background .1s;border:1px solid transparent;margin-bottom:2px;}
+.layer-item:hover{background:var(--surface2);}
+.layer-item.selected{background:rgba(232,255,90,.08);border-color:rgba(232,255,90,.25);}
+.layer-thumb{width:26px;height:26px;border-radius:4px;background:var(--surface3);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;border:1px solid var(--border);}
+.layer-thumb img{width:100%;height:100%;object-fit:cover;}
+.layer-name{font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.layer-del{width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .1s;flex-shrink:0;}
+.layer-del:hover{background:rgba(255,90,90,.15);color:var(--danger);}
+#layers-empty{padding:16px 10px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;}
 
-  /* CANVAS */
-  #canvas-wrap { flex:1; overflow:auto; background:#0a0a0a; display:flex; align-items:center; justify-content:center; position:relative; }
-  #canvas-wrap::-webkit-scrollbar { width:8px; height:8px; }
-  #canvas-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-  #canvas-bg { position:relative; flex-shrink:0; margin:40px; }
-  #canvas { position:relative; background:#fff; overflow:hidden; box-shadow:0 0 0 1px rgba(255,255,255,.08),0 32px 80px rgba(0,0,0,.7); }
-  .canvas-hint { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; pointer-events:none; }
-  .canvas-hint-icon { font-size:36px; opacity:.12; }
-  .canvas-hint-text { font-size:13px; color:#aaa; opacity:.3; }
+/* ── CANVAS AREA ── */
+#canvas-wrap{flex:1;overflow:hidden;background:#0a0a0a;display:flex;align-items:center;justify-content:center;position:relative;touch-action:none;}
+#canvas-bg{position:relative;flex-shrink:0;}
+#canvas{position:relative;background:#fff;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 24px 60px rgba(0,0,0,.7);}
+.canvas-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none;}
+.canvas-hint-icon{font-size:32px;opacity:.12;}
+.canvas-hint-text{font-size:12px;color:#aaa;opacity:.25;}
 
-  /* ELEMENTS */
-  .el { position:absolute; cursor:default; outline:none; }
-  .el.selected > .el-inner { outline:2px solid var(--accent); outline-offset:0; }
-  .el-inner { width:100%; height:100%; overflow:hidden; position:relative; }
+/* snap guide lines */
+.snap-guide{position:absolute;background:var(--snap);pointer-events:none;z-index:100;opacity:.8;}
+.snap-guide.h{height:1px;left:0;right:0;}
+.snap-guide.v{width:1px;top:0;bottom:0;}
 
-  .el-photo .el-inner { background:#e0e0e0; }
-  .el-photo img { position:absolute; transform-origin:center center; pointer-events:none; user-select:none; -webkit-user-drag:none; }
-  .photo-upload-prompt { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; background:#ddd; cursor:pointer; transition:background .15s; }
-  .photo-upload-prompt:hover { background:#ccc; }
-  .photo-upload-prompt svg { width:28px; height:28px; color:#999; }
-  .photo-upload-prompt span { font-size:11px; color:#999; }
+/* ── ELEMENTS ── */
+.el{position:absolute;cursor:default;outline:none;}
+.el.selected>.el-inner{outline:2px solid var(--accent);outline-offset:0;}
+.el-inner{width:100%;height:100%;overflow:hidden;position:relative;}
+.el-photo .el-inner{background:#e0e0e0;}
+.el-photo img{position:absolute;transform-origin:center center;pointer-events:none;user-select:none;-webkit-user-drag:none;}
+.photo-upload-prompt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;background:#ddd;cursor:pointer;transition:background .15s;}
+.photo-upload-prompt:hover,.photo-upload-prompt:active{background:#ccc;}
+.photo-upload-prompt svg{width:26px;height:26px;color:#999;}
+.photo-upload-prompt span{font-size:11px;color:#999;}
+.el-text .el-inner{background:transparent;display:flex;align-items:flex-start;}
+.el-text-content{width:100%;min-height:100%;outline:none;border:none;background:transparent;font-family:inherit;line-height:1.3;word-break:break-word;white-space:pre-wrap;}
 
-  .el-text .el-inner { background:transparent; display:flex; align-items:flex-start; }
-  .el-text-content { width:100%; min-height:100%; outline:none; border:none; background:transparent; font-family:inherit; line-height:1.3; word-break:break-word; white-space:pre-wrap; }
+/* handles */
+.resize-handle{position:absolute;width:11px;height:11px;background:#fff;border:2px solid var(--accent);border-radius:2px;z-index:10;display:none;touch-action:none;}
+.el.selected .resize-handle{display:block;}
+.resize-handle.se{bottom:-5px;right:-5px;cursor:se-resize;}
+.resize-handle.sw{bottom:-5px;left:-5px;cursor:sw-resize;}
+.resize-handle.ne{top:-5px;right:-5px;cursor:ne-resize;}
+.resize-handle.nw{top:-5px;left:-5px;cursor:nw-resize;}
+.resize-handle.n{top:-5px;left:50%;transform:translateX(-50%);cursor:n-resize;}
+.resize-handle.s{bottom:-5px;left:50%;transform:translateX(-50%);cursor:s-resize;}
+.resize-handle.e{right:-5px;top:50%;transform:translateY(-50%);cursor:e-resize;}
+.resize-handle.w{left:-5px;top:50%;transform:translateY(-50%);cursor:w-resize;}
+.rotate-handle{position:absolute;width:20px;height:20px;top:-32px;left:50%;transform:translateX(-50%);cursor:crosshair;display:none;z-index:11;align-items:center;justify-content:center;touch-action:none;}
+.el.selected .rotate-handle{display:flex;}
+.rotate-handle svg{width:14px;height:14px;color:var(--accent);filter:drop-shadow(0 1px 3px rgba(0,0,0,.8));}
+.el.selected::before{content:'';position:absolute;top:-24px;left:50%;width:1px;height:20px;background:var(--accent);opacity:.5;pointer-events:none;}
+.photo-rot-handle{position:absolute;bottom:5px;right:5px;width:24px;height:24px;background:rgba(0,0,0,.6);border-radius:5px;cursor:crosshair;display:none;z-index:11;align-items:center;justify-content:center;touch-action:none;}
+.el-photo.selected .photo-rot-handle{display:flex;}
+.photo-rot-handle svg{width:13px;height:13px;color:#fff;}
 
-  /* HANDLES — only visible when selected */
-  .resize-handle { position:absolute; width:10px; height:10px; background:#fff; border:2px solid var(--accent); border-radius:2px; z-index:10; display:none; }
-  .el.selected .resize-handle { display:block; }
-  .resize-handle.se { bottom:-5px; right:-5px; cursor:se-resize; }
-  .resize-handle.sw { bottom:-5px; left:-5px; cursor:sw-resize; }
-  .resize-handle.ne { top:-5px; right:-5px; cursor:ne-resize; }
-  .resize-handle.nw { top:-5px; left:-5px; cursor:nw-resize; }
-  .resize-handle.n  { top:-5px; left:50%; transform:translateX(-50%); cursor:n-resize; }
-  .resize-handle.s  { bottom:-5px; left:50%; transform:translateX(-50%); cursor:s-resize; }
-  .resize-handle.e  { right:-5px; top:50%; transform:translateY(-50%); cursor:e-resize; }
-  .resize-handle.w  { left:-5px; top:50%; transform:translateY(-50%); cursor:w-resize; }
+/* mobile edit btn per photo frame */
+.photo-edit-btn{position:absolute;top:5px;right:5px;height:22px;padding:0 8px;background:rgba(0,0,0,.65);border:none;border-radius:5px;color:#fff;font-size:10px;font-family:'DM Sans',sans-serif;cursor:pointer;display:none;z-index:11;align-items:center;gap:4px;white-space:nowrap;}
+.el-photo.selected .photo-edit-btn{display:flex;}
+.photo-edit-btn.active{background:var(--accent);color:#0f0f0f;}
 
-  /* Frame rotation handle — above element */
-  .rotate-handle { position:absolute; width:18px; height:18px; top:-30px; left:50%; transform:translateX(-50%); cursor:crosshair; display:none; z-index:11; align-items:center; justify-content:center; }
-  .el.selected .rotate-handle { display:flex; }
-  .rotate-handle svg { width:14px; height:14px; color:var(--accent); filter:drop-shadow(0 1px 3px rgba(0,0,0,.8)); }
-  .el.selected::before { content:''; position:absolute; top:-22px; left:50%; width:1px; height:18px; background:var(--accent); opacity:.5; pointer-events:none; }
+/* ── PROPS (desktop) ── */
+#props{width:var(--props-w);background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;}
+#props::-webkit-scrollbar{width:4px;}
+#props::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.props-section{padding:12px;border-bottom:1px solid var(--border);}
+.props-section-label{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.prop-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.prop-label{font-size:11px;color:var(--text2);width:36px;flex-shrink:0;}
+.prop-input{flex:1;height:27px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:0 7px;outline:none;transition:border-color .15s;}
+.prop-input:focus{border-color:var(--accent);}
+.prop-input[type="color"]{padding:2px 3px;cursor:pointer;}
+.prop-row-2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:7px;}
+.prop-group{display:flex;flex-direction:column;gap:3px;}
+.prop-group-label{font-size:10px;color:var(--text3);}
+.prop-select{height:27px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;padding:0 6px;outline:none;cursor:pointer;appearance:none;width:100%;}
+.prop-select:focus{border-color:var(--accent);}
+.props-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text3);font-size:11px;text-align:center;padding:20px;line-height:1.6;}
+.slider-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.slider-label{font-size:11px;color:var(--text2);width:52px;flex-shrink:0;}
+input[type="range"].prop-slider{flex:1;height:3px;appearance:none;background:var(--border2);border-radius:2px;outline:none;cursor:pointer;}
+input[type="range"].prop-slider::-webkit-slider-thumb{appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;}
+.slider-val{font-size:11px;font-family:'DM Mono',monospace;color:var(--text2);min-width:32px;text-align:right;}
 
-  /* Photo rotate handle — bottom-right inside frame */
-  .photo-rot-handle { position:absolute; bottom:5px; right:5px; width:22px; height:22px; background:rgba(0,0,0,.6); border-radius:5px; cursor:crosshair; display:none; z-index:11; align-items:center; justify-content:center; }
-  .el-photo.selected .photo-rot-handle { display:flex; }
-  .photo-rot-handle svg { width:13px; height:13px; color:#fff; }
+/* ── BOTTOM SHEET (mobile) ── */
+#sheet-overlay{display:none;position:fixed;inset:0;z-index:300;background:transparent;pointer-events:none;}
+#sheet-overlay.open{pointer-events:auto;}
+#sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border2);border-radius:16px 16px 0 0;z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:70dvh;display:flex;flex-direction:column;}
+#sheet.open{transform:translateY(0);}
+#sheet-drag-handle{height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:grab;}
+#sheet-drag-handle::after{content:'';width:36px;height:4px;border-radius:2px;background:var(--border2);}
+#sheet-tabs{display:flex;gap:2px;padding:0 12px 8px;flex-shrink:0;}
+.sheet-tab{flex:1;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
+.sheet-tab.active{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:500;}
+#sheet-body{flex:1;overflow-y:auto;padding:0 12px 24px;}
+#sheet-body::-webkit-scrollbar{width:4px;}
+#sheet-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-  /* PROPS */
-  #props { width:var(--props-w); background:var(--surface); border-left:1px solid var(--border); overflow-y:auto; flex-shrink:0; display:flex; flex-direction:column; }
-  #props::-webkit-scrollbar { width:4px; }
-  #props::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-  .props-section { padding:14px; border-bottom:1px solid var(--border); }
-  .props-section-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:12px; }
-  .prop-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-  .prop-label { font-size:11px; color:var(--text2); width:36px; flex-shrink:0; }
-  .prop-input { flex:1; height:28px; background:var(--surface2); border:1px solid var(--border); border-radius:5px; color:var(--text); font-family:'DM Mono',monospace; font-size:11px; padding:0 8px; outline:none; transition:border-color .15s; }
-  .prop-input:focus { border-color:var(--accent); }
-  .prop-input[type="color"] { padding:2px 4px; cursor:pointer; }
-  .prop-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px; }
-  .prop-group { display:flex; flex-direction:column; gap:4px; }
-  .prop-group-label { font-size:10px; color:var(--text3); }
-  .prop-select { height:28px; background:var(--surface2); border:1px solid var(--border); border-radius:5px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:11px; padding:0 6px; outline:none; cursor:pointer; appearance:none; width:100%; }
-  .prop-select:focus { border-color:var(--accent); }
-  .props-empty { flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:var(--text3); font-size:11px; text-align:center; padding:24px; line-height:1.6; }
-  .slider-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-  .slider-label { font-size:11px; color:var(--text2); width:52px; flex-shrink:0; }
-  input[type="range"].prop-slider { flex:1; height:3px; appearance:none; background:var(--border2); border-radius:2px; outline:none; cursor:pointer; }
-  input[type="range"].prop-slider::-webkit-slider-thumb { appearance:none; width:12px; height:12px; border-radius:50%; background:var(--accent); cursor:pointer; }
-  .slider-val { font-size:11px; font-family:'DM Mono',monospace; color:var(--text2); min-width:32px; text-align:right; }
+/* FABs (mobile) */
+#fab-wrap{display:none;position:fixed;bottom:16px;right:16px;z-index:200;flex-direction:column;gap:8px;align-items:flex-end;}
+.fab{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.fab-main{background:var(--accent);color:#0f0f0f;width:52px;height:52px;font-size:24px;}
+.fab-sub{background:var(--surface2);color:var(--text);border:1px solid var(--border2);}
+#fab-open-btn{display:none;}
+#sheet-open-btn{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);height:34px;padding:0 16px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;z-index:200;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,.4);}
 
-  /* MODAL */
-  #modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; align-items:center; justify-content:center; }
-  #modal-overlay.open { display:flex; }
-  #modal { background:var(--surface); border:1px solid var(--border2); border-radius:12px; padding:24px; width:300px; }
-  #modal h3 { font-size:14px; font-weight:500; margin-bottom:16px; }
-  .modal-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-  .modal-label { font-size:12px; color:var(--text2); width:60px; }
-  .modal-input { flex:1; height:32px; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; padding:0 10px; outline:none; }
-  .modal-input:focus { border-color:var(--accent); }
-  .modal-btns { display:flex; gap:8px; margin-top:16px; }
-  .modal-btn { flex:1; height:34px; border-radius:7px; border:1px solid var(--border2); background:var(--surface2); color:var(--text); font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; transition:all .15s; }
-  .modal-btn:hover { background:var(--surface3); }
-  .modal-btn.confirm { background:var(--accent); color:#0f0f0f; border-color:var(--accent); font-weight:500; }
-  .modal-btn.confirm:hover { background:var(--accent-dim); }
+/* MODAL */
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;padding:16px;}
+#modal-overlay.open{display:flex;}
+#modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:20px;width:100%;max-width:300px;}
+#modal h3{font-size:14px;font-weight:500;margin-bottom:14px;}
+.modal-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.modal-label{font-size:12px;color:var(--text2);width:60px;}
+.modal-input{flex:1;height:32px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:0 10px;outline:none;}
+.modal-input:focus{border-color:var(--accent);}
+.modal-btns{display:flex;gap:8px;margin-top:14px;}
+.modal-btn{flex:1;height:34px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
+.modal-btn:hover,.modal-btn:active{background:var(--surface3);}
+.modal-btn.confirm{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:500;}
 
-  #scale-info { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:4px 12px; font-size:11px; font-family:'DM Mono',monospace; color:var(--text2); z-index:50; pointer-events:none; }
-  #file-input { display:none; }
+#scale-info{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text2);z-index:50;pointer-events:none;}
+#file-input{display:none;}
+
+/* ── MOBILE RESPONSIVE ── */
+@media(max-width:700px){
+  #sidebar,#props{display:none;}
+  #fab-wrap{display:flex;}
+  #sheet-open-btn{display:flex;}
+  #format-label,#zoom-row{display:none;}
+  #topbar{padding:0 10px;gap:8px;}
+  #scale-info{bottom:88px;}
+}
+@media(min-width:701px){
+  #sheet,#sheet-overlay,#fab-wrap,#sheet-open-btn{display:none!important;}
+}
 </style>
 </head>
 <body>
 <input type="file" id="file-input" accept="image/*">
 
+<!-- TOPBAR -->
 <div id="topbar">
   <span id="logo">grida.</span>
   <div class="top-sep"></div>
-  <div id="format-row">
-    <span id="format-label">Canvas:</span>
+  <div id="format-row" style="display:flex;align-items:center;gap:6px;">
+    <span id="format-label" style="color:var(--text2);font-size:11px;">Canvas:</span>
     <button class="fmt-btn active" onclick="setFormat('square',this)">1:1</button>
     <button class="fmt-btn" onclick="setFormat('story',this)">9:16</button>
     <button class="fmt-btn" onclick="setFormat('custom',this)">Custom</button>
+  </div>
+  <div class="top-sep"></div>
+  <div id="zoom-row">
+    <button class="zoom-btn" onclick="zoomBy(-0.1)">−</button>
+    <span id="zoom-pct">100%</span>
+    <button class="zoom-btn" onclick="zoomBy(0.1)">+</button>
+    <button class="zoom-btn" onclick="zoomFit()" title="Fit" style="width:auto;padding:0 7px;font-size:11px;">Fit</button>
   </div>
   <div id="topbar-right">
     <button class="top-btn" onclick="undo()" title="Ctrl+Z">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h7a4 4 0 1 1 0 8H6"/><polyline points="5,3 2,6 5,9"/></svg>Undo
     </button>
     <button class="top-btn accent" id="export-btn" onclick="exportCanvas()">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v9M5 8l3 3 3-3M2 13h12"/></svg>Export PNG
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v9M5 8l3 3 3-3M2 13h12"/></svg><span class="hide-xs">Export</span>
     </button>
   </div>
 </div>
 
+<!-- MAIN -->
 <div id="main">
+  <!-- SIDEBAR -->
   <div id="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-section-label">Add</div>
@@ -184,18 +246,27 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M8 4v9M5 13h6"/></svg>Text overlay
       </button>
     </div>
-    <div id="layers-wrap">
-      <div id="layers-header">
-        <div class="sidebar-section-label">Layers</div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Snap to padding</div>
+      <div id="snap-row">
+        <button id="snap-toggle" class="on" onclick="toggleSnap()"></button>
+        <span id="snap-label">Snap enabled</span>
       </div>
+      <div id="snap-dist-row">
+        <span id="snap-dist-label">Distance</span>
+        <input id="snap-dist" type="number" value="20" min="0" max="200">
+        <span id="snap-dist-unit">px</span>
+      </div>
+    </div>
+    <div id="layers-wrap">
+      <div id="layers-header"><div class="sidebar-section-label">Layers</div></div>
       <div id="layers-list">
-        <div id="layers-empty" style="padding:20px 12px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;">
-          No elements yet.<br>Add a photo frame or text to start.
-        </div>
+        <div id="layers-empty" style="padding:16px 10px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;">No elements yet.<br>Add a frame or text.</div>
       </div>
     </div>
   </div>
 
+  <!-- CANVAS -->
   <div id="canvas-wrap">
     <div id="canvas-bg">
       <div id="canvas">
@@ -208,15 +279,39 @@
     <div id="scale-info">600 × 600 px</div>
   </div>
 
+  <!-- PROPS (desktop) -->
   <div id="props">
     <div class="props-empty" id="props-empty">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
       Select an element<br>to edit its properties
     </div>
     <div id="props-content" style="display:none;"></div>
   </div>
 </div>
 
+<!-- BOTTOM SHEET (mobile) -->
+<div id="sheet-overlay" onclick="closeSheet()"></div>
+<div id="sheet">
+  <div id="sheet-drag-handle"></div>
+  <div id="sheet-tabs">
+    <button class="sheet-tab active" onclick="switchSheetTab('layers',this)">Layers</button>
+    <button class="sheet-tab" onclick="switchSheetTab('props',this)">Properties</button>
+    <button class="sheet-tab" onclick="switchSheetTab('snap',this)">Snap</button>
+  </div>
+  <div id="sheet-body"></div>
+</div>
+
+<!-- FABs (mobile) -->
+<div id="fab-wrap">
+  <button class="fab fab-sub" onclick="addText()" title="Add text">T</button>
+  <button class="fab fab-sub" onclick="addPhotoFrame()" title="Add photo">🖼</button>
+</div>
+<button id="sheet-open-btn" onclick="openSheet()">
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h10M3 10h10"/></svg>
+  Layers & Properties
+</button>
+
+<!-- CUSTOM SIZE MODAL -->
 <div id="modal-overlay">
   <div id="modal">
     <h3>Custom canvas size</h3>
@@ -230,559 +325,782 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════════════════
-let elements = [];
-let selectedId = null;
-let nextId = 1;
-let historyStack = [];
-let canvasW = 600, canvasH = 600;
-let scale = 1;
+// ══════════════════════════════════════════════
+let elements=[], selectedId=null, nextId=1, historyStack=[];
+let canvasW=600, canvasH=600;
+let scale=1, panX=0, panY=0;
 
-let frameDrag  = null;  // middle-mouse: move whole frame
-let textDrag   = null;  // left-drag on text: move frame
-let photoPan   = null;  // left-drag on photo with img: pan inside
-let resizing   = null;
-let frameRot   = null;  // frame rotation
-let photoRot   = null;  // photo-inside-frame rotation
-let historyDirty = false;
+// interaction
+let frameDrag=null, textDrag=null, photoPan=null, resizing=null, frameRot=null, photoRot=null;
+let historyDirty=false;
+let photoEditMode={}; // id -> bool: is touch panning the photo?
 
-// ═══════════════════════════════════════════════════
-//  CANVAS SIZING
-// ═══════════════════════════════════════════════════
-function updateCanvasDisplay() {
-  const wrap = document.getElementById('canvas-wrap');
-  const aw = wrap.clientWidth - 80, ah = wrap.clientHeight - 80;
-  scale = Math.max(0.1, Math.min(1, aw / canvasW, ah / canvasH));
-  const cv = document.getElementById('canvas');
-  cv.style.width = canvasW + 'px';
-  cv.style.height = canvasH + 'px';
-  cv.style.transform = `scale(${scale})`;
-  cv.style.transformOrigin = 'center center';
-  document.getElementById('scale-info').textContent =
-    `${canvasW} × ${canvasH} px  ·  ${Math.round(scale*100)}%`;
+// snap
+let snapEnabled=true, snapDist=20;
+const SNAP_THRESH=6; // px on screen
+
+// pinch state
+let pinchState=null;  // {d0, scale0, panX0, panY0}
+let canvasPan=null;   // two-finger pan of canvas
+
+// ══════════════════════════════════════════════
+//  CANVAS TRANSFORM
+// ══════════════════════════════════════════════
+function applyCanvasTransform(){
+  const cv=document.getElementById('canvas');
+  cv.style.width=canvasW+'px';
+  cv.style.height=canvasH+'px';
+  cv.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  cv.style.transformOrigin='center center';
+  document.getElementById('zoom-pct').textContent=Math.round(scale*100)+'%';
+  document.getElementById('scale-info').textContent=`${canvasW}×${canvasH}px · ${Math.round(scale*100)}%`;
 }
 
-function setFormat(fmt, btn) {
-  document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+function zoomFit(){
+  const wrap=document.getElementById('canvas-wrap');
+  const aw=wrap.clientWidth-60, ah=wrap.clientHeight-60;
+  scale=Math.max(0.05,Math.min(1,aw/canvasW,ah/canvasH));
+  panX=0; panY=0;
+  applyCanvasTransform();
+}
+
+function zoomBy(delta){
+  scale=Math.max(0.05,Math.min(5,scale+delta));
+  applyCanvasTransform();
+}
+
+function setFormat(fmt,btn){
+  document.querySelectorAll('.fmt-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  if (fmt === 'square') { canvasW=600; canvasH=600; updateCanvasDisplay(); }
-  else if (fmt === 'story') { canvasW=337; canvasH=600; updateCanvasDisplay(); }
+  if(fmt==='square'){canvasW=600;canvasH=600;zoomFit();}
+  else if(fmt==='story'){canvasW=337;canvasH=600;zoomFit();}
   else document.getElementById('modal-overlay').classList.add('open');
 }
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
-function applyCustomSize() {
-  const w = parseInt(document.getElementById('custom-w').value);
-  const h = parseInt(document.getElementById('custom-h').value);
-  if (w >= 100 && h >= 100) { canvasW=Math.min(w,4000); canvasH=Math.min(h,4000); updateCanvasDisplay(); }
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function applyCustomSize(){
+  const w=parseInt(document.getElementById('custom-w').value);
+  const h=parseInt(document.getElementById('custom-h').value);
+  if(w>=100&&h>=100){canvasW=Math.min(w,4000);canvasH=Math.min(h,4000);zoomFit();}
   closeModal();
 }
 
-// ═══════════════════════════════════════════════════
-//  ADD ELEMENTS
-// ═══════════════════════════════════════════════════
-function addPhotoFrame() {
-  saveHistory();
-  const n = elements.filter(e=>e.type==='photo').length;
-  const id = 'el_' + (nextId++);
-  const sz = Math.min(200, canvasW-80, canvasH-80);
-  elements.push({
-    id, type:'photo', name:'Photo '+(n+1),
-    x:40+n*22, y:40+n*22, w:sz, h:sz, rotation:0,
-    imgSrc:null, imgX:0, imgY:0, imgScale:1, imgRotation:0,
-    opacity:100, borderRadius:0
-  });
-  renderEl(elements[elements.length-1]);
-  select(id); updateLayers();
-  document.getElementById('canvas-hint').style.display = 'none';
+// Desktop scroll-to-zoom on canvas-wrap background
+document.getElementById('canvas-wrap').addEventListener('wheel',e=>{
+  // only zoom when scrolling on background (not on element)
+  e.preventDefault();
+  const delta=e.deltaY<0?0.08:-0.08;
+  scale=Math.max(0.05,Math.min(5,scale+delta));
+  applyCanvasTransform();
+},{passive:false});
+
+// ══════════════════════════════════════════════
+//  SNAP
+// ══════════════════════════════════════════════
+function toggleSnap(){
+  snapEnabled=!snapEnabled;
+  const t=document.getElementById('snap-toggle');
+  t.classList.toggle('on',snapEnabled);
+  document.getElementById('snap-label').textContent=snapEnabled?'Snap enabled':'Snap off';
+}
+document.getElementById('snap-dist').addEventListener('input',e=>{
+  snapDist=Math.max(0,parseInt(e.target.value)||0);
+});
+
+function applySnap(el){
+  if(!snapEnabled) return;
+  const sd=snapDist, th=SNAP_THRESH/scale;
+  // canvas edges at sd px from each side
+  const snapTargetsX=[sd, canvasW-el.w-sd];  // left edge, right edge
+  const snapTargetsY=[sd, canvasH-el.h-sd];  // top edge, bottom edge
+
+  let snappedX=false, snappedY=false;
+  snapTargetsX.forEach(tx=>{if(Math.abs(el.x-tx)<th){el.x=tx;snappedX=true;}});
+  snapTargetsY.forEach(ty=>{if(Math.abs(el.y-ty)<th){el.y=ty;snappedY=true;}});
+
+  showSnapGuides(snappedX?el.x:null, snappedY?el.y:null, el);
 }
 
-function addText() {
-  saveHistory();
-  const n = elements.filter(e=>e.type==='text').length;
-  const id = 'el_' + (nextId++);
-  elements.push({
-    id, type:'text', name:'Text '+(n+1),
-    x:40+n*22, y:40+n*22, w:200, h:60, rotation:0,
-    text:'Your text here', fontSize:32, fontWeight:'400',
-    color:'#ffffff', opacity:100, align:'left'
-  });
-  renderEl(elements[elements.length-1]);
-  select(id); updateLayers();
-  document.getElementById('canvas-hint').style.display = 'none';
-}
-
-// ═══════════════════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════════════════
-function renderEl(el) {
-  let dom = document.getElementById(el.id);
-  const isNew = !dom;
-  if (isNew) {
-    dom = document.createElement('div');
-    dom.id = el.id;
-    dom.className = 'el el-' + el.type;
-    dom.tabIndex = -1;
-    document.getElementById('canvas').appendChild(dom);
-    attachElEvents(dom, el);
+let snapGuideTimer=null;
+function showSnapGuides(snapX, snapY, el){
+  clearSnapGuides();
+  const canvas=document.getElementById('canvas');
+  const sd=snapDist;
+  if(snapX!==null){
+    // vertical guide line at x=snapX or x=snapX+el.w
+    [snapX, snapX+el.w].forEach(gx=>{
+      const g=document.createElement('div');
+      g.className='snap-guide v'; g.style.left=gx+'px';
+      canvas.appendChild(g);
+    });
   }
+  if(snapY!==null){
+    [snapY, snapY+el.h].forEach(gy=>{
+      const g=document.createElement('div');
+      g.className='snap-guide h'; g.style.top=gy+'px';
+      canvas.appendChild(g);
+    });
+  }
+  if(snapGuideTimer) clearTimeout(snapGuideTimer);
+  snapGuideTimer=setTimeout(clearSnapGuides,600);
+}
+function clearSnapGuides(){
+  document.querySelectorAll('.snap-guide').forEach(g=>g.remove());
+}
 
-  // position / size / rotation / opacity
-  dom.style.cssText += '';
-  dom.style.left = el.x + 'px';
-  dom.style.top  = el.y + 'px';
-  dom.style.width  = el.w + 'px';
-  dom.style.height = el.h + 'px';
-  dom.style.transform = `rotate(${el.rotation||0}deg)`;
-  dom.style.transformOrigin = 'center center';
-  dom.style.opacity = el.opacity / 100;
+// ══════════════════════════════════════════════
+//  ADD ELEMENTS
+// ══════════════════════════════════════════════
+function addPhotoFrame(){
+  saveHistory();
+  const n=elements.filter(e=>e.type==='photo').length;
+  const id='el_'+(nextId++);
+  const sz=Math.min(200,canvasW-80,canvasH-80);
+  elements.push({id,type:'photo',name:'Photo '+(n+1),x:snapDist+n*22,y:snapDist+n*22,w:sz,h:sz,rotation:0,imgSrc:null,imgX:0,imgY:0,imgScale:1,imgRotation:0,opacity:100,borderRadius:0});
+  renderEl(elements[elements.length-1]);
+  select(id); updateLayers();
+  document.getElementById('canvas-hint').style.display='none';
+}
+function addText(){
+  saveHistory();
+  const n=elements.filter(e=>e.type==='text').length;
+  const id='el_'+(nextId++);
+  elements.push({id,type:'text',name:'Text '+(n+1),x:snapDist+n*22,y:snapDist+n*22,w:200,h:60,rotation:0,text:'Your text here',fontSize:32,fontWeight:'400',color:'#ffffff',opacity:100,align:'left'});
+  renderEl(elements[elements.length-1]);
+  select(id); updateLayers();
+  document.getElementById('canvas-hint').style.display='none';
+}
 
-  // rebuild inner
-  dom.innerHTML = '';
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function renderEl(el){
+  let dom=document.getElementById(el.id);
+  const isNew=!dom;
+  if(isNew){
+    dom=document.createElement('div');
+    dom.id=el.id; dom.className='el el-'+el.type; dom.tabIndex=-1;
+    document.getElementById('canvas').appendChild(dom);
+    attachElEvents(dom,el);
+  }
+  dom.style.left=el.x+'px'; dom.style.top=el.y+'px';
+  dom.style.width=el.w+'px'; dom.style.height=el.h+'px';
+  dom.style.transform=`rotate(${el.rotation||0}deg)`;
+  dom.style.transformOrigin='center center';
+  dom.style.opacity=el.opacity/100;
+  dom.innerHTML='';
 
-  const inner = document.createElement('div');
-  inner.className = 'el-inner';
+  const inner=document.createElement('div');
+  inner.className='el-inner';
 
-  if (el.type === 'photo') {
-    inner.style.borderRadius = (el.borderRadius||0) + 'px';
-    if (el.imgSrc) {
-      const img = document.createElement('img');
-      img.src = el.imgSrc;
-      img.draggable = false;
-      img.style.width  = (el.w * el.imgScale) + 'px';
-      img.style.height = 'auto';
-      img.style.left   = el.imgX + 'px';
-      img.style.top    = el.imgY + 'px';
-      img.style.transform = `rotate(${el.imgRotation||0}deg)`;
-      img.style.transformOrigin = 'center center';
+  if(el.type==='photo'){
+    inner.style.borderRadius=(el.borderRadius||0)+'px';
+    if(el.imgSrc){
+      const img=document.createElement('img');
+      img.src=el.imgSrc; img.draggable=false;
+      img.style.width=(el.w*el.imgScale)+'px';
+      img.style.height='auto';
+      img.style.left=el.imgX+'px'; img.style.top=el.imgY+'px';
+      img.style.transform=`rotate(${el.imgRotation||0}deg)`;
+      img.style.transformOrigin='center center';
       inner.appendChild(img);
 
-      // photo rotate handle (inside frame, bottom-right)
-      const prh = document.createElement('div');
-      prh.className = 'photo-rot-handle';
-      prh.title = 'Rotate photo';
-      prh.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><polyline points="14,2 14,6 10,6"/></svg>`;
-      prh.addEventListener('mousedown', e => startPhotoRotate(e, el));
+      // photo rotate handle
+      const prh=document.createElement('div');
+      prh.className='photo-rot-handle';
+      prh.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><polyline points="14,2 14,6 10,6"/></svg>`;
+      prh.addEventListener('mousedown',e=>startPhotoRotate(e,el));
+      prh.addEventListener('touchstart',e=>startPhotoRotate(e,el),{passive:false});
       inner.appendChild(prh);
+
+      // mobile edit mode toggle
+      const eb=document.createElement('button');
+      eb.className='photo-edit-btn';
+      eb.id='eb_'+el.id;
+      eb.innerHTML=`<svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3H3v10h10V8"/><path d="M12 2l2 2-7 7-3 1 1-3z"/></svg> Edit photo`;
+      eb.addEventListener('click',e=>{e.stopPropagation(); togglePhotoEdit(el.id, eb);});
+      eb.addEventListener('touchend',e=>{e.preventDefault(); e.stopPropagation(); togglePhotoEdit(el.id, eb);});
+      inner.appendChild(eb);
     } else {
-      const p = document.createElement('div');
-      p.className = 'photo-upload-prompt';
-      p.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><span>Click to upload photo</span>`;
-      p.onclick = e => { e.stopPropagation(); triggerUpload(el.id); };
+      const p=document.createElement('div');
+      p.className='photo-upload-prompt';
+      p.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><span>Tap to upload</span>`;
+      p.onclick=e=>{e.stopPropagation();triggerUpload(el.id);};
+      p.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();triggerUpload(el.id);});
       inner.appendChild(p);
     }
-  } else if (el.type === 'text') {
-    const ta = document.createElement('div');
-    ta.className = 'el-text-content';
-    ta.contentEditable = 'true';
-    ta.textContent = el.text;
-    ta.style.fontSize   = el.fontSize + 'px';
-    ta.style.fontWeight = el.fontWeight;
-    ta.style.color      = el.color;
-    ta.style.textAlign  = el.align;
-    ta.style.minHeight  = el.h + 'px';
-    ta.style.cursor     = 'text';
-    ta.addEventListener('input', () => { el.text = ta.textContent; });
-    ta.addEventListener('mousedown', e => e.stopPropagation());
+  } else if(el.type==='text'){
+    const ta=document.createElement('div');
+    ta.className='el-text-content'; ta.contentEditable='true'; ta.textContent=el.text;
+    ta.style.fontSize=el.fontSize+'px'; ta.style.fontWeight=el.fontWeight;
+    ta.style.color=el.color; ta.style.textAlign=el.align; ta.style.minHeight=el.h+'px';
+    ta.style.cursor='text';
+    ta.addEventListener('input',()=>{el.text=ta.textContent;});
+    ta.addEventListener('mousedown',e=>e.stopPropagation());
+    ta.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
     inner.appendChild(ta);
   }
 
   dom.appendChild(inner);
 
   // resize handles
-  ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
-    const h = document.createElement('div');
-    h.className = 'resize-handle ' + dir;
-    h.addEventListener('mousedown', e => startResize(e, el, dir));
+  ['nw','n','ne','e','se','s','sw','w'].forEach(dir=>{
+    const h=document.createElement('div');
+    h.className='resize-handle '+dir;
+    h.addEventListener('mousedown',e=>startResize(e,el,dir));
+    h.addEventListener('touchstart',e=>startResize(e,el,dir),{passive:false});
     dom.appendChild(h);
   });
 
-  // frame rotation handle (top-center, above element)
-  const rh = document.createElement('div');
-  rh.className = 'rotate-handle';
-  rh.title = 'Rotate frame (middle-mouse = move)';
-  rh.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><polyline points="14,2 14,6 10,6"/></svg>`;
-  rh.addEventListener('mousedown', e => startFrameRotate(e, el));
+  // frame rotate handle
+  const rh=document.createElement('div');
+  rh.className='rotate-handle';
+  rh.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><polyline points="14,2 14,6 10,6"/></svg>`;
+  rh.addEventListener('mousedown',e=>startFrameRotate(e,el));
+  rh.addEventListener('touchstart',e=>startFrameRotate(e,el),{passive:false});
   dom.appendChild(rh);
 
-  dom.classList.toggle('selected', selectedId === el.id);
+  dom.classList.toggle('selected',selectedId===el.id);
 }
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  PHOTO EDIT MODE (mobile toggle)
+// ══════════════════════════════════════════════
+function togglePhotoEdit(id, btn){
+  photoEditMode[id]=!photoEditMode[id];
+  btn.classList.toggle('active',photoEditMode[id]);
+  btn.innerHTML=photoEditMode[id]
+    ? `<svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M8 3l5 5-5 5"/></svg> Done`
+    : `<svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3H3v10h10V8"/><path d="M12 2l2 2-7 7-3 1 1-3z"/></svg> Edit photo`;
+}
+
+// ══════════════════════════════════════════════
 //  ELEMENT EVENTS
-// ═══════════════════════════════════════════════════
-function attachElEvents(dom, el) {
-
-  // ── LEFT BUTTON ──
-  dom.addEventListener('mousedown', e => {
-    if (e.button !== 0) return;
-    if (e.target.classList.contains('resize-handle')) return;
-    if (e.target.closest('.rotate-handle')) return;
-    if (e.target.closest('.photo-rot-handle')) return;
-    if (e.target.closest('.photo-upload-prompt')) return;
-    if (e.target.classList.contains('el-text-content')) return;
-
-    e.preventDefault();
-    select(el.id);
-
-    if (el.type === 'photo' && el.imgSrc) {
-      // left drag → pan photo inside frame
-      photoPan = { el, startX:e.clientX, startY:e.clientY, origImgX:el.imgX, origImgY:el.imgY };
+// ══════════════════════════════════════════════
+function attachElEvents(dom,el){
+  // ─ MOUSE ─
+  dom.addEventListener('mousedown',e=>{
+    if(e.button!==0) return;
+    if(e.target.closest('.resize-handle,.rotate-handle,.photo-rot-handle,.photo-upload-prompt,.photo-edit-btn')) return;
+    if(e.target.classList.contains('el-text-content')) return;
+    e.preventDefault(); select(el.id);
+    if(el.type==='photo'&&el.imgSrc){
+      photoPan={el,startX:e.clientX,startY:e.clientY,origImgX:el.imgX,origImgY:el.imgY};
     } else {
-      // left drag on empty photo frame or text → move frame
-      textDrag = { el, startX:e.clientX, startY:e.clientY, origX:el.x, origY:el.y };
+      textDrag={el,startX:e.clientX,startY:e.clientY,origX:el.x,origY:el.y};
     }
   });
-
-  // ── MIDDLE BUTTON → move frame ──
-  dom.addEventListener('mousedown', e => {
-    if (e.button !== 1) return;
-    e.preventDefault();
-    select(el.id);
-    frameDrag = { el, startX:e.clientX, startY:e.clientY, origX:el.x, origY:el.y };
+  dom.addEventListener('mousedown',e=>{
+    if(e.button!==1) return;
+    e.preventDefault(); select(el.id);
+    frameDrag={el,startX:e.clientX,startY:e.clientY,origX:el.x,origY:el.y};
   });
-
-  // ── SCROLL → zoom photo ──
-  dom.addEventListener('wheel', e => {
-    if (el.type === 'photo' && el.imgSrc) {
-      e.preventDefault();
+  dom.addEventListener('wheel',e=>{
+    if(el.type==='photo'&&el.imgSrc){
+      e.preventDefault(); e.stopPropagation();
       saveHistoryOnce();
-      el.imgScale = Math.max(0.05, Math.min(10, el.imgScale - e.deltaY * 0.002));
-      const img = dom.querySelector('img');
-      if (img) img.style.width = (el.w * el.imgScale) + 'px';
+      el.imgScale=Math.max(0.05,Math.min(10,el.imgScale-e.deltaY*0.002));
+      const img=dom.querySelector('img'); if(img) img.style.width=(el.w*el.imgScale)+'px';
       updatePropsPanel();
     }
-  }, { passive: false });
+  },{passive:false});
+
+  // ─ TOUCH ─
+  dom.addEventListener('touchstart',e=>{
+    if(e.target.closest('.resize-handle,.rotate-handle,.photo-rot-handle,.photo-upload-prompt,.photo-edit-btn')) return;
+    if(e.target.classList.contains('el-text-content')) return;
+    if(e.touches.length===1){
+      select(el.id);
+      const t=e.touches[0];
+      // if photo edit mode → pan photo; else → move frame
+      if(el.type==='photo'&&el.imgSrc&&photoEditMode[el.id]){
+        e.preventDefault();
+        photoPan={el,startX:t.clientX,startY:t.clientY,origImgX:el.imgX,origImgY:el.imgY};
+      } else {
+        e.preventDefault();
+        frameDrag={el,startX:t.clientX,startY:t.clientY,origX:el.x,origY:el.y};
+      }
+    } else if(e.touches.length===2&&el.type==='photo'&&el.imgSrc&&photoEditMode[el.id]){
+      // pinch inside photo edit = zoom photo
+      e.preventDefault();
+      const d=getTouchDist(e.touches);
+      pinchState={mode:'photo',el,d0:d,imgScale0:el.imgScale};
+    }
+  },{passive:false});
 }
 
-// ═══════════════════════════════════════════════════
-//  GLOBAL MOUSE
-// ═══════════════════════════════════════════════════
-document.addEventListener('mousemove', e => {
-  if (frameDrag || textDrag) {
+// ══════════════════════════════════════════════
+//  GLOBAL MOUSE MOVE
+// ══════════════════════════════════════════════
+document.addEventListener('mousemove',e=>{
+  if(frameDrag){
     saveHistoryOnce();
-    const d = frameDrag || textDrag;
-    d.el.x = d.origX + (e.clientX - d.startX) / scale;
-    d.el.y = d.origY + (e.clientY - d.startY) / scale;
-    const dom = document.getElementById(d.el.id);
-    dom.style.left = d.el.x + 'px';
-    dom.style.top  = d.el.y + 'px';
+    const d=frameDrag;
+    d.el.x=d.origX+(e.clientX-d.startX)/scale;
+    d.el.y=d.origY+(e.clientY-d.startY)/scale;
+    applySnap(d.el);
+    const dom=document.getElementById(d.el.id);
+    dom.style.left=d.el.x+'px'; dom.style.top=d.el.y+'px';
     updatePropsPanel();
   }
-
-  if (photoPan) {
-    const { el, startX, startY, origImgX, origImgY } = photoPan;
-    el.imgX = origImgX + (e.clientX - startX) / scale;
-    el.imgY = origImgY + (e.clientY - startY) / scale;
-    const img = document.querySelector('#'+el.id+' img');
-    if (img) { img.style.left = el.imgX+'px'; img.style.top = el.imgY+'px'; }
-  }
-
-  if (resizing) handleResize(e);
-
-  if (frameRot) {
-    const { el, cx, cy, startAngle } = frameRot;
-    const a = Math.atan2(e.clientY-cy, e.clientX-cx) * 180/Math.PI;
-    el.rotation = a - startAngle;
-    document.getElementById(el.id).style.transform = `rotate(${el.rotation}deg)`;
+  if(textDrag){
+    saveHistoryOnce();
+    const d=textDrag;
+    d.el.x=d.origX+(e.clientX-d.startX)/scale;
+    d.el.y=d.origY+(e.clientY-d.startY)/scale;
+    applySnap(d.el);
+    const dom=document.getElementById(d.el.id);
+    dom.style.left=d.el.x+'px'; dom.style.top=d.el.y+'px';
     updatePropsPanel();
   }
-
-  if (photoRot) {
-    const { el, cx, cy, startAngle } = photoRot;
-    const a = Math.atan2(e.clientY-cy, e.clientX-cx) * 180/Math.PI;
-    el.imgRotation = a - startAngle;
-    const img = document.querySelector('#'+el.id+' img');
-    if (img) img.style.transform = `rotate(${el.imgRotation}deg)`;
+  if(photoPan){
+    const {el,startX,startY,origImgX,origImgY}=photoPan;
+    el.imgX=origImgX+(e.clientX-startX)/scale;
+    el.imgY=origImgY+(e.clientY-startY)/scale;
+    const img=document.querySelector('#'+el.id+' img');
+    if(img){img.style.left=el.imgX+'px';img.style.top=el.imgY+'px';}
+  }
+  if(resizing) handleResize(e.clientX,e.clientY);
+  if(frameRot){
+    const{el,cx,cy,startAngle}=frameRot;
+    el.rotation=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI-startAngle;
+    document.getElementById(el.id).style.transform=`rotate(${el.rotation}deg)`;
+    updatePropsPanel();
+  }
+  if(photoRot){
+    const{el,cx,cy,startAngle}=photoRot;
+    el.imgRotation=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI-startAngle;
+    const img=document.querySelector('#'+el.id+' img');
+    if(img) img.style.transform=`rotate(${el.imgRotation}deg)`;
     updatePropsPanel();
   }
 });
+document.addEventListener('mouseup',()=>{
+  if(frameDrag||textDrag) clearSnapGuides();
+  frameDrag=null;textDrag=null;photoPan=null;resizing=null;frameRot=null;photoRot=null;
+  historyDirty=false;
+});
+document.addEventListener('mousedown',e=>{if(e.button===1)e.preventDefault();},{passive:false});
 
-document.addEventListener('mouseup', () => {
-  frameDrag=null; textDrag=null; photoPan=null; resizing=null; frameRot=null; photoRot=null;
-  historyDirty = false;
+// ══════════════════════════════════════════════
+//  GLOBAL TOUCH MOVE / END
+// ══════════════════════════════════════════════
+document.addEventListener('touchmove',e=>{
+  if(e.touches.length===1){
+    const t=e.touches[0];
+    if(frameDrag){
+      e.preventDefault();
+      saveHistoryOnce();
+      const d=frameDrag;
+      d.el.x=d.origX+(t.clientX-d.startX)/scale;
+      d.el.y=d.origY+(t.clientY-d.startY)/scale;
+      applySnap(d.el);
+      const dom=document.getElementById(d.el.id);
+      dom.style.left=d.el.x+'px'; dom.style.top=d.el.y+'px';
+      updatePropsPanel();
+    }
+    if(photoPan){
+      e.preventDefault();
+      const{el,startX,startY,origImgX,origImgY}=photoPan;
+      el.imgX=origImgX+(t.clientX-startX)/scale;
+      el.imgY=origImgY+(t.clientY-startY)/scale;
+      const img=document.querySelector('#'+el.id+' img');
+      if(img){img.style.left=el.imgX+'px';img.style.top=el.imgY+'px';}
+    }
+    if(resizing){e.preventDefault();handleResize(t.clientX,t.clientY);}
+    if(frameRot){
+      e.preventDefault();
+      const{el,cx,cy,startAngle}=frameRot;
+      el.rotation=Math.atan2(t.clientY-cy,t.clientX-cx)*180/Math.PI-startAngle;
+      document.getElementById(el.id).style.transform=`rotate(${el.rotation}deg)`;
+    }
+    if(photoRot){
+      e.preventDefault();
+      const{el,cx,cy,startAngle}=photoRot;
+      el.imgRotation=Math.atan2(t.clientY-cy,t.clientX-cx)*180/Math.PI-startAngle;
+      const img=document.querySelector('#'+el.id+' img');
+      if(img) img.style.transform=`rotate(${el.imgRotation}deg)`;
+    }
+  } else if(e.touches.length===2){
+    e.preventDefault();
+    if(pinchState){
+      const d=getTouchDist(e.touches);
+      if(pinchState.mode==='canvas'){
+        const newScale=Math.max(0.05,Math.min(5,pinchState.scale0*(d/pinchState.d0)));
+        scale=newScale; applyCanvasTransform();
+      } else if(pinchState.mode==='photo'){
+        const el=pinchState.el;
+        el.imgScale=Math.max(0.05,Math.min(10,pinchState.imgScale0*(d/pinchState.d0)));
+        const img=document.querySelector('#'+el.id+' img');
+        if(img) img.style.width=(el.w*el.imgScale)+'px';
+      }
+    }
+  }
+},{passive:false});
+
+document.addEventListener('touchend',e=>{
+  if(frameDrag||textDrag) clearSnapGuides();
+  frameDrag=null;textDrag=null;photoPan=null;resizing=null;frameRot=null;photoRot=null;
+  pinchState=null; historyDirty=false;
+},{passive:true});
+
+// Canvas-level pinch (two fingers on canvas background = zoom canvas)
+document.getElementById('canvas-wrap').addEventListener('touchstart',e=>{
+  if(e.touches.length===2&&!frameDrag&&!photoPan){
+    e.preventDefault();
+    const d=getTouchDist(e.touches);
+    pinchState={mode:'canvas',d0:d,scale0:scale};
+  }
+},{passive:false});
+
+// Canvas background tap → deselect
+document.getElementById('canvas').addEventListener('touchend',e=>{
+  if(e.target===e.currentTarget||e.target.closest('.canvas-hint')){select(null);}
+},{passive:true});
+document.getElementById('canvas').addEventListener('mousedown',e=>{
+  if(e.target===e.currentTarget||e.target.closest('.canvas-hint')) select(null);
 });
 
-// block middle-click scroll globally
-document.addEventListener('mousedown', e => { if(e.button===1) e.preventDefault(); }, {passive:false});
+function getTouchDist(touches){
+  const dx=touches[0].clientX-touches[1].clientX;
+  const dy=touches[0].clientY-touches[1].clientY;
+  return Math.sqrt(dx*dx+dy*dy);
+}
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  RESIZE
-// ═══════════════════════════════════════════════════
-function startResize(e, el, dir) {
+// ══════════════════════════════════════════════
+function startResize(e,el,dir){
   e.preventDefault(); e.stopPropagation();
   saveHistory();
-  resizing = { el, dir, startX:e.clientX, startY:e.clientY, origX:el.x, origY:el.y, origW:el.w, origH:el.h };
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  resizing={el,dir,startX:cx,startY:cy,origX:el.x,origY:el.y,origW:el.w,origH:el.h};
 }
-function handleResize(e) {
-  const { el, dir, startX, startY, origX, origY, origW, origH } = resizing;
-  const dx = (e.clientX-startX)/scale, dy = (e.clientY-startY)/scale;
-  const minW=40, minH=30;
-  if (dir.includes('e')) el.w = Math.max(minW, origW+dx);
-  if (dir.includes('s')) el.h = Math.max(minH, origH+dy);
-  if (dir.includes('w')) { const nw=Math.max(minW,origW-dx); el.x=origX+(origW-nw); el.w=nw; }
-  if (dir.includes('n')) { const nh=Math.max(minH,origH-dy); el.y=origY+(origH-nh); el.h=nh; }
-  const dom = document.getElementById(el.id);
-  dom.style.left=el.x+'px'; dom.style.top=el.y+'px'; dom.style.width=el.w+'px'; dom.style.height=el.h+'px';
-  if (el.type==='photo' && el.imgSrc) { const img=dom.querySelector('img'); if(img) img.style.width=(el.w*el.imgScale)+'px'; }
-  if (el.type==='text') { const ta=dom.querySelector('.el-text-content'); if(ta) ta.style.minHeight=el.h+'px'; }
+function handleResize(cx,cy){
+  const{el,dir,startX,startY,origX,origY,origW,origH}=resizing;
+  const dx=(cx-startX)/scale,dy=(cy-startY)/scale,minW=40,minH=30;
+  if(dir.includes('e')) el.w=Math.max(minW,origW+dx);
+  if(dir.includes('s')) el.h=Math.max(minH,origH+dy);
+  if(dir.includes('w')){const nw=Math.max(minW,origW-dx);el.x=origX+(origW-nw);el.w=nw;}
+  if(dir.includes('n')){const nh=Math.max(minH,origH-dy);el.y=origY+(origH-nh);el.h=nh;}
+  const dom=document.getElementById(el.id);
+  dom.style.left=el.x+'px';dom.style.top=el.y+'px';dom.style.width=el.w+'px';dom.style.height=el.h+'px';
+  if(el.type==='photo'&&el.imgSrc){const img=dom.querySelector('img');if(img)img.style.width=(el.w*el.imgScale)+'px';}
+  if(el.type==='text'){const ta=dom.querySelector('.el-text-content');if(ta)ta.style.minHeight=el.h+'px';}
   updatePropsPanel();
 }
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  ROTATION
-// ═══════════════════════════════════════════════════
-function startFrameRotate(e, el) {
-  e.preventDefault(); e.stopPropagation();
-  saveHistory();
-  const rect = document.getElementById(el.id).getBoundingClientRect();
-  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
-  frameRot = { el, cx, cy, startAngle: Math.atan2(e.clientY-cy, e.clientX-cx)*180/Math.PI - (el.rotation||0) };
+// ══════════════════════════════════════════════
+function startFrameRotate(e,el){
+  e.preventDefault();e.stopPropagation();saveHistory();
+  const rect=document.getElementById(el.id).getBoundingClientRect();
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const px=e.touches?e.touches[0].clientX:e.clientX;
+  const py=e.touches?e.touches[0].clientY:e.clientY;
+  frameRot={el,cx,cy,startAngle:Math.atan2(py-cy,px-cx)*180/Math.PI-(el.rotation||0)};
 }
-function startPhotoRotate(e, el) {
-  e.preventDefault(); e.stopPropagation();
-  saveHistory();
-  const inner = document.querySelector('#'+el.id+' .el-inner');
-  const rect  = inner.getBoundingClientRect();
-  const cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
-  photoRot = { el, cx, cy, startAngle: Math.atan2(e.clientY-cy, e.clientX-cx)*180/Math.PI - (el.imgRotation||0) };
+function startPhotoRotate(e,el){
+  e.preventDefault();e.stopPropagation();saveHistory();
+  const inner=document.querySelector('#'+el.id+' .el-inner');
+  const rect=inner.getBoundingClientRect();
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const px=e.touches?e.touches[0].clientX:e.clientX;
+  const py=e.touches?e.touches[0].clientY:e.clientY;
+  photoRot={el,cx,cy,startAngle:Math.atan2(py-cy,px-cx)*180/Math.PI-(el.imgRotation||0)};
 }
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  SELECTION
-// ═══════════════════════════════════════════════════
-function select(id) {
-  if (selectedId === id) return;
-  const prev = selectedId; selectedId = id;
-  if (prev) { const d=document.getElementById(prev); if(d) d.classList.remove('selected'); }
-  if (id)   { const d=document.getElementById(id);   if(d) d.classList.add('selected'); }
+// ══════════════════════════════════════════════
+function select(id){
+  if(selectedId===id) return;
+  const prev=selectedId; selectedId=id;
+  if(prev){const d=document.getElementById(prev);if(d)d.classList.remove('selected');}
+  if(id){const d=document.getElementById(id);if(d)d.classList.add('selected');}
   updatePropsPanel(); updateLayers();
+  // on mobile, auto-open props sheet
+  if(id&&window.innerWidth<=700){openSheet('props');}
 }
-document.getElementById('canvas').addEventListener('mousedown', e => {
-  if (e.target===e.currentTarget || e.target.closest('.canvas-hint')) select(null);
-});
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  UPLOAD
-// ═══════════════════════════════════════════════════
-let pendingUploadId = null;
-function triggerUpload(id) { pendingUploadId=id; document.getElementById('file-input').click(); }
-document.getElementById('file-input').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file || !pendingUploadId) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const el = elements.find(x=>x.id===pendingUploadId);
-    if (!el) return;
+// ══════════════════════════════════════════════
+let pendingUploadId=null;
+function triggerUpload(id){pendingUploadId=id;document.getElementById('file-input').click();}
+document.getElementById('file-input').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(!file||!pendingUploadId) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const el=elements.find(x=>x.id===pendingUploadId);
+    if(!el) return;
     saveHistory();
-    el.imgSrc=ev.target.result; el.imgX=0; el.imgY=0; el.imgScale=1; el.imgRotation=0;
+    el.imgSrc=ev.target.result;el.imgX=0;el.imgY=0;el.imgScale=1;el.imgRotation=0;
     const img=new Image();
-    img.onload = () => { el.imgScale=el.w/img.naturalWidth; renderEl(el); updatePropsPanel(); updateLayers(); };
-    img.src = el.imgSrc;
+    img.onload=()=>{el.imgScale=el.w/img.naturalWidth;renderEl(el);updatePropsPanel();updateLayers();};
+    img.src=el.imgSrc;
   };
   reader.readAsDataURL(file);
   e.target.value='';
 });
 
-// ═══════════════════════════════════════════════════
-//  LAYERS  — BUG FIX: never wipe the static #layers-empty node
-// ═══════════════════════════════════════════════════
-function updateLayers() {
-  const list = document.getElementById('layers-list');
-  const emptyEl = document.getElementById('layers-empty');
-
-  // Remove all .layer-item nodes (not the static empty node)
-  list.querySelectorAll('.layer-item').forEach(n => n.remove());
-
-  if (elements.length === 0) {
-    if (emptyEl) emptyEl.style.display = '';
-    return;
-  }
-  if (emptyEl) emptyEl.style.display = 'none';
-
-  // Render top-to-bottom = last element first
-  [...elements].reverse().forEach(el => {
-    const item = document.createElement('div');
-    item.className = 'layer-item' + (selectedId===el.id ? ' selected' : '');
-    item.dataset.id = el.id;
-
-    const thumb = document.createElement('div');
-    thumb.className = 'layer-thumb';
-    if (el.type==='photo' && el.imgSrc) {
-      const img=document.createElement('img'); img.src=el.imgSrc; thumb.appendChild(img);
-    } else if (el.type==='text') {
-      thumb.textContent='T';
-    } else {
-      thumb.innerHTML=`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>`;
-    }
-
-    const name=document.createElement('div'); name.className='layer-name'; name.textContent=el.name;
-
-    const del=document.createElement('button'); del.className='layer-del'; del.innerHTML='×'; del.title='Delete';
-    del.onclick = ev => { ev.stopPropagation(); deleteEl(el.id); };
-
-    item.appendChild(thumb); item.appendChild(name); item.appendChild(del);
-    item.onclick = () => select(el.id);
+// ══════════════════════════════════════════════
+//  LAYERS
+// ══════════════════════════════════════════════
+function updateLayers(){
+  const list=document.getElementById('layers-list');
+  const emptyEl=document.getElementById('layers-empty');
+  list.querySelectorAll('.layer-item').forEach(n=>n.remove());
+  if(elements.length===0){if(emptyEl)emptyEl.style.display='';return;}
+  if(emptyEl)emptyEl.style.display='none';
+  [...elements].reverse().forEach(el=>{
+    const item=document.createElement('div');
+    item.className='layer-item'+(selectedId===el.id?' selected':'');
+    const thumb=document.createElement('div');thumb.className='layer-thumb';
+    if(el.type==='photo'&&el.imgSrc){const i=document.createElement('img');i.src=el.imgSrc;thumb.appendChild(i);}
+    else if(el.type==='text'){thumb.textContent='T';}
+    else{thumb.innerHTML=`<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>`;}
+    const name=document.createElement('div');name.className='layer-name';name.textContent=el.name;
+    const del=document.createElement('button');del.className='layer-del';del.innerHTML='×';del.title='Delete';
+    del.onclick=ev=>{ev.stopPropagation();deleteEl(el.id);};
+    item.appendChild(thumb);item.appendChild(name);item.appendChild(del);
+    item.onclick=()=>select(el.id);
     list.appendChild(item);
   });
+  // also update sheet if open
+  if(document.getElementById('sheet').classList.contains('open'))
+    renderSheetTab(currentSheetTab);
 }
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  DELETE
-// ═══════════════════════════════════════════════════
-function deleteEl(id) {
+// ══════════════════════════════════════════════
+function deleteEl(id){
   saveHistory();
-  elements = elements.filter(e=>e.id!==id);
-  const dom=document.getElementById(id); if(dom) dom.remove();
-  if (selectedId===id) selectedId=null;
-  updateLayers(); updatePropsPanel();
-  if (elements.length===0) document.getElementById('canvas-hint').style.display='';
+  elements=elements.filter(e=>e.id!==id);
+  const dom=document.getElementById(id);if(dom)dom.remove();
+  if(selectedId===id){selectedId=null;}
+  updateLayers();updatePropsPanel();
+  if(elements.length===0)document.getElementById('canvas-hint').style.display='';
 }
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown',e=>{
   const active=document.activeElement;
-  if ((e.key==='Delete'||e.key==='Backspace') && selectedId && active.tagName!=='INPUT' && !active.isContentEditable) deleteEl(selectedId);
-  if ((e.ctrlKey||e.metaKey) && e.key==='z') { e.preventDefault(); undo(); }
+  if((e.key==='Delete'||e.key==='Backspace')&&selectedId&&active.tagName!=='INPUT'&&!active.isContentEditable) deleteEl(selectedId);
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
 });
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  PROPS PANEL
-// ═══════════════════════════════════════════════════
-function updatePropsPanel() {
-  const empty=document.getElementById('props-empty'), content=document.getElementById('props-content');
+// ══════════════════════════════════════════════
+function buildPropsContent(container){
+  container.innerHTML='';
   const el=elements.find(e=>e.id===selectedId);
-  if (!el) { empty.style.display=''; content.style.display='none'; return; }
-  empty.style.display='none'; content.style.display=''; content.innerHTML='';
-
-  // position & size
-  const ps=sec('Position & Size');
-  ps.appendChild(r2(pg('X',numIn(Math.round(el.x),v=>{el.x=v;document.getElementById(el.id).style.left=v+'px';})),
-                    pg('Y',numIn(Math.round(el.y),v=>{el.y=v;document.getElementById(el.id).style.top=v+'px';}))));
-  ps.appendChild(r2(pg('W',numIn(Math.round(el.w),v=>{el.w=Math.max(20,v);renderEl(el);})),
-                    pg('H',numIn(Math.round(el.h),v=>{el.h=Math.max(20,v);renderEl(el);}))));
-  content.appendChild(ps);
-
-  // transform
-  const ts=sec('Transform');
-  ts.appendChild(slr('Frame °',el.rotation||0,-180,180,1,'°',v=>{
-    el.rotation=v; document.getElementById(el.id).style.transform=`rotate(${v}deg)`;
-  }));
-  content.appendChild(ts);
-
-  // visibility
-  const vs=sec('Visibility');
-  vs.appendChild(slr('Opacity',el.opacity,0,100,1,'%',v=>{
-    el.opacity=v; document.getElementById(el.id).style.opacity=v/100;
-  }));
-  content.appendChild(vs);
-
-  if (el.type==='photo') {
-    const ph=sec('Photo');
-    if (el.imgSrc) {
-      ph.appendChild(slr('Zoom',Math.round(el.imgScale*100),10,500,1,'%',v=>{
-        el.imgScale=v/100;
-        const img=document.querySelector('#'+el.id+' img'); if(img) img.style.width=(el.w*el.imgScale)+'px';
-      }));
-      ph.appendChild(slr('Photo °',el.imgRotation||0,-180,180,1,'°',v=>{
-        el.imgRotation=v;
-        const img=document.querySelector('#'+el.id+' img'); if(img) img.style.transform=`rotate(${v}deg)`;
-      }));
-    }
-    ph.appendChild(slr('Radius',el.borderRadius||0,0,500,1,'px',v=>{
-      el.borderRadius=v;
-      const inner=document.querySelector('#'+el.id+' .el-inner'); if(inner) inner.style.borderRadius=v+'px';
-    }));
-    const ub=document.createElement('button'); ub.className='sidebar-btn'; ub.style.marginTop='8px';
-    ub.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M8 2v9M5 4l3-3 3 3M2 13h12"/></svg> ${el.imgSrc?'Replace photo':'Upload photo'}`;
-    ub.onclick=()=>triggerUpload(el.id); ph.appendChild(ub); content.appendChild(ph);
-
-  } else if (el.type==='text') {
-    const tx=sec('Text');
-    tx.appendChild(slr('Size',el.fontSize,8,200,1,'px',v=>{
-      el.fontSize=v; const ta=document.querySelector('#'+el.id+' .el-text-content'); if(ta) ta.style.fontSize=v+'px';
-    }));
-    const cr=document.createElement('div'); cr.className='prop-row'; cr.innerHTML=`<span class="prop-label">Color</span>`;
-    const ci=document.createElement('input'); ci.type='color'; ci.className='prop-input'; ci.value=el.color;
-    ci.oninput=ev=>{el.color=ev.target.value; const ta=document.querySelector('#'+el.id+' .el-text-content'); if(ta) ta.style.color=ev.target.value;};
-    cr.appendChild(ci); tx.appendChild(cr);
-
-    const wr=document.createElement('div'); wr.className='prop-row'; wr.innerHTML=`<span class="prop-label">Weight</span>`;
-    const ws=document.createElement('select'); ws.className='prop-select';
-    [['300','Light'],['400','Regular'],['500','Medium'],['700','Bold']].forEach(([v,l])=>{
-      const o=document.createElement('option'); o.value=v; o.textContent=l; if(el.fontWeight===v) o.selected=true; ws.appendChild(o);
-    });
-    ws.onchange=ev=>{el.fontWeight=ev.target.value; const ta=document.querySelector('#'+el.id+' .el-text-content'); if(ta) ta.style.fontWeight=ev.target.value;};
-    wr.appendChild(ws); tx.appendChild(wr);
-
-    const ar=document.createElement('div'); ar.className='prop-row'; ar.innerHTML=`<span class="prop-label">Align</span>`;
-    const as=document.createElement('select'); as.className='prop-select';
-    [['left','Left'],['center','Center'],['right','Right']].forEach(([v,l])=>{
-      const o=document.createElement('option'); o.value=v; o.textContent=l; if(el.align===v) o.selected=true; as.appendChild(o);
-    });
-    as.onchange=ev=>{el.align=ev.target.value; const ta=document.querySelector('#'+el.id+' .el-text-content'); if(ta) ta.style.textAlign=ev.target.value;};
-    ar.appendChild(as); tx.appendChild(ar);
-    content.appendChild(tx);
+  if(!el){
+    container.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;">Select an element<br>to edit its properties</div>';
+    return;
   }
 
-  const ds=document.createElement('div'); ds.style.padding='14px';
-  const db=document.createElement('button'); db.className='sidebar-btn';
+  const ps=sec('Position & Size');
+  ps.appendChild(r2(pg('X',numIn(Math.round(el.x),v=>{el.x=v;const d=document.getElementById(el.id);if(d)d.style.left=v+'px';})),
+                    pg('Y',numIn(Math.round(el.y),v=>{el.y=v;const d=document.getElementById(el.id);if(d)d.style.top=v+'px';}))));
+  ps.appendChild(r2(pg('W',numIn(Math.round(el.w),v=>{el.w=Math.max(20,v);renderEl(el);})),
+                    pg('H',numIn(Math.round(el.h),v=>{el.h=Math.max(20,v);renderEl(el);}))));
+  container.appendChild(ps);
+
+  const ts=sec('Transform');
+  ts.appendChild(slr('Frame °',el.rotation||0,-180,180,1,'°',v=>{el.rotation=v;const d=document.getElementById(el.id);if(d)d.style.transform=`rotate(${v}deg)`;}));
+  container.appendChild(ts);
+
+  const vs=sec('Visibility');
+  vs.appendChild(slr('Opacity',el.opacity,0,100,1,'%',v=>{el.opacity=v;const d=document.getElementById(el.id);if(d)d.style.opacity=v/100;}));
+  container.appendChild(vs);
+
+  if(el.type==='photo'){
+    const ph=sec('Photo');
+    if(el.imgSrc){
+      ph.appendChild(slr('Zoom',Math.round(el.imgScale*100),10,500,1,'%',v=>{el.imgScale=v/100;const img=document.querySelector('#'+el.id+' img');if(img)img.style.width=(el.w*el.imgScale)+'px';}));
+      ph.appendChild(slr('Photo °',el.imgRotation||0,-180,180,1,'°',v=>{el.imgRotation=v;const img=document.querySelector('#'+el.id+' img');if(img)img.style.transform=`rotate(${v}deg)`;}));
+    }
+    ph.appendChild(slr('Radius',el.borderRadius||0,0,500,1,'px',v=>{el.borderRadius=v;const inner=document.querySelector('#'+el.id+' .el-inner');if(inner)inner.style.borderRadius=v+'px';}));
+    const ub=document.createElement('button');ub.className='sidebar-btn';ub.style.marginTop='6px';
+    ub.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M8 2v9M5 4l3-3 3 3M2 13h12"/></svg> ${el.imgSrc?'Replace photo':'Upload photo'}`;
+    ub.onclick=()=>triggerUpload(el.id); ph.appendChild(ub); container.appendChild(ph);
+  } else if(el.type==='text'){
+    const tx=sec('Text');
+    tx.appendChild(slr('Size',el.fontSize,8,200,1,'px',v=>{el.fontSize=v;const ta=document.querySelector('#'+el.id+' .el-text-content');if(ta)ta.style.fontSize=v+'px';}));
+    const cr=document.createElement('div');cr.className='prop-row';cr.innerHTML=`<span class="prop-label">Color</span>`;
+    const ci=document.createElement('input');ci.type='color';ci.className='prop-input';ci.value=el.color;
+    ci.oninput=ev=>{el.color=ev.target.value;const ta=document.querySelector('#'+el.id+' .el-text-content');if(ta)ta.style.color=ev.target.value;};
+    cr.appendChild(ci);tx.appendChild(cr);
+    const wr=document.createElement('div');wr.className='prop-row';wr.innerHTML=`<span class="prop-label">Weight</span>`;
+    const ws=buildSelect([['300','Light'],['400','Regular'],['500','Medium'],['700','Bold']],el.fontWeight,v=>{el.fontWeight=v;const ta=document.querySelector('#'+el.id+' .el-text-content');if(ta)ta.style.fontWeight=v;});
+    wr.appendChild(ws);tx.appendChild(wr);
+    const ar=document.createElement('div');ar.className='prop-row';ar.innerHTML=`<span class="prop-label">Align</span>`;
+    const as=buildSelect([['left','Left'],['center','Center'],['right','Right']],el.align,v=>{el.align=v;const ta=document.querySelector('#'+el.id+' .el-text-content');if(ta)ta.style.textAlign=v;});
+    ar.appendChild(as);tx.appendChild(ar);
+    container.appendChild(tx);
+  }
+
+  const ds=document.createElement('div');ds.style.padding='12px';
+  const db=document.createElement('button');db.className='sidebar-btn';
   db.style.cssText='border-color:rgba(255,90,90,.3);color:var(--danger);width:100%;';
-  db.innerHTML='× Delete element'; db.onclick=()=>deleteEl(el.id);
-  ds.appendChild(db); content.appendChild(ds);
+  db.innerHTML='× Delete element';db.onclick=()=>deleteEl(el.id);
+  ds.appendChild(db);container.appendChild(ds);
 }
 
-// prop helpers
-function sec(label) { const s=document.createElement('div'); s.className='props-section'; const l=document.createElement('div'); l.className='props-section-label'; l.textContent=label; s.appendChild(l); return s; }
-function numIn(val,cb) { const i=document.createElement('input'); i.type='number'; i.className='prop-input'; i.value=val; i.oninput=e=>cb(parseFloat(e.target.value)||0); return i; }
-function r2(...gs) { const r=document.createElement('div'); r.className='prop-row-2'; gs.forEach(g=>r.appendChild(g)); return r; }
-function pg(label,inputEl) { const g=document.createElement('div'); g.className='prop-group'; const l=document.createElement('div'); l.className='prop-group-label'; l.textContent=label; g.appendChild(l); g.appendChild(inputEl); return g; }
-function slr(label,val,min,max,step,unit,cb) {
-  const r=document.createElement('div'); r.className='slider-row'; r.innerHTML=`<span class="slider-label">${label}</span>`;
-  const sl=document.createElement('input'); sl.type='range'; sl.className='prop-slider'; sl.min=min; sl.max=max; sl.step=step; sl.value=val;
-  const sv=document.createElement('span'); sv.className='slider-val'; sv.textContent=val+unit;
-  sl.oninput=e=>{const v=parseFloat(e.target.value); sv.textContent=v+unit; cb(v);}; r.appendChild(sl); r.appendChild(sv); return r;
+function updatePropsPanel(){
+  // desktop
+  const empty=document.getElementById('props-empty'),content=document.getElementById('props-content');
+  const el=elements.find(e=>e.id===selectedId);
+  if(!el){empty.style.display='';content.style.display='none';}
+  else{empty.style.display='none';content.style.display='';buildPropsContent(content);}
+  // mobile sheet if on props tab
+  if(currentSheetTab==='props'&&document.getElementById('sheet').classList.contains('open'))
+    renderSheetTab('props');
 }
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  BOTTOM SHEET
+// ══════════════════════════════════════════════
+let currentSheetTab='layers';
+function openSheet(tab){
+  currentSheetTab=tab||currentSheetTab;
+  document.querySelectorAll('.sheet-tab').forEach(t=>{
+    t.classList.toggle('active',t.textContent.toLowerCase()===currentSheetTab);
+  });
+  renderSheetTab(currentSheetTab);
+  document.getElementById('sheet').classList.add('open');
+  document.getElementById('sheet-overlay').classList.add('open');
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('sheet-overlay').classList.remove('open');
+}
+function switchSheetTab(tab,btn){
+  currentSheetTab=tab;
+  document.querySelectorAll('.sheet-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderSheetTab(tab);
+}
+function renderSheetTab(tab){
+  const body=document.getElementById('sheet-body');
+  body.innerHTML='';
+  if(tab==='layers'){
+    if(elements.length===0){
+      body.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;">No elements yet.<br>Tap ＋ to add a frame or text.</div>';
+      return;
+    }
+    [...elements].reverse().forEach(el=>{
+      const item=document.createElement('div');
+      item.className='layer-item'+(selectedId===el.id?' selected':'');
+      const thumb=document.createElement('div');thumb.className='layer-thumb';
+      if(el.type==='photo'&&el.imgSrc){const i=document.createElement('img');i.src=el.imgSrc;thumb.appendChild(i);}
+      else if(el.type==='text'){thumb.textContent='T';}
+      else{thumb.innerHTML=`<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>`;}
+      const name=document.createElement('div');name.className='layer-name';name.textContent=el.name;
+      const del=document.createElement('button');del.className='layer-del';del.innerHTML='×';
+      del.onclick=ev=>{ev.stopPropagation();deleteEl(el.id);};
+      item.appendChild(thumb);item.appendChild(name);item.appendChild(del);
+      item.onclick=()=>{select(el.id);switchSheetTab('props',document.querySelectorAll('.sheet-tab')[1]);};
+      body.appendChild(item);
+    });
+  } else if(tab==='props'){
+    buildPropsContent(body);
+  } else if(tab==='snap'){
+    const s=document.createElement('div');s.style.padding='16px';
+    s.innerHTML=`
+      <div class="sidebar-section-label" style="margin-bottom:12px;">Snap to padding</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <button id="sheet-snap-toggle" style="width:36px;height:20px;border-radius:10px;background:${snapEnabled?'var(--accent)':'var(--border2)'};border:none;cursor:pointer;position:relative;transition:background .2s;">
+          <span style="position:absolute;top:3px;left:${snapEnabled?'19px':'3px'};width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;display:block;"></span>
+        </button>
+        <span style="font-size:12px;color:var(--text2);">${snapEnabled?'Snap enabled':'Snap off'}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--text2);">Snap distance</span>
+        <input id="sheet-snap-dist" type="number" value="${snapDist}" min="0" max="200" style="width:60px;height:28px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:0 8px;outline:none;">
+        <span style="font-size:12px;color:var(--text3);">px</span>
+      </div>`;
+    body.appendChild(s);
+    document.getElementById('sheet-snap-toggle').onclick=()=>{
+      snapEnabled=!snapEnabled;
+      renderSheetTab('snap');
+      toggleSnap(); // keep desktop in sync
+      snapEnabled=!snapEnabled; toggleSnap(); // toggleSnap flips, undo double-flip
+      snapEnabled=!snapEnabled; // set correctly
+    };
+    document.getElementById('sheet-snap-dist').oninput=e=>{
+      snapDist=Math.max(0,parseInt(e.target.value)||0);
+      document.getElementById('snap-dist').value=snapDist;
+    };
+  }
+}
+
+// ══════════════════════════════════════════════
+//  PROP HELPERS
+// ══════════════════════════════════════════════
+function sec(label){const s=document.createElement('div');s.className='props-section';const l=document.createElement('div');l.className='props-section-label';l.textContent=label;s.appendChild(l);return s;}
+function numIn(val,cb){const i=document.createElement('input');i.type='number';i.className='prop-input';i.value=val;i.oninput=e=>cb(parseFloat(e.target.value)||0);return i;}
+function r2(...gs){const r=document.createElement('div');r.className='prop-row-2';gs.forEach(g=>r.appendChild(g));return r;}
+function pg(label,inputEl){const g=document.createElement('div');g.className='prop-group';const l=document.createElement('div');l.className='prop-group-label';l.textContent=label;g.appendChild(l);g.appendChild(inputEl);return g;}
+function slr(label,val,min,max,step,unit,cb){
+  const r=document.createElement('div');r.className='slider-row';r.innerHTML=`<span class="slider-label">${label}</span>`;
+  const sl=document.createElement('input');sl.type='range';sl.className='prop-slider';sl.min=min;sl.max=max;sl.step=step;sl.value=val;
+  const sv=document.createElement('span');sv.className='slider-val';sv.textContent=val+unit;
+  sl.oninput=e=>{const v=parseFloat(e.target.value);sv.textContent=v+unit;cb(v);};
+  r.appendChild(sl);r.appendChild(sv);return r;
+}
+function buildSelect(opts,currentVal,cb){
+  const s=document.createElement('select');s.className='prop-select';
+  opts.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;if(currentVal===v)o.selected=true;s.appendChild(o);});
+  s.onchange=e=>cb(e.target.value);return s;
+}
+
+// ══════════════════════════════════════════════
 //  HISTORY
-// ═══════════════════════════════════════════════════
-function saveHistory() {
-  historyStack.push(JSON.stringify(elements));
-  if (historyStack.length>50) historyStack.shift();
-  historyDirty=false;
-}
-function saveHistoryOnce() { if(!historyDirty){saveHistory();historyDirty=true;} }
-function undo() {
-  if (!historyStack.length) return;
+// ══════════════════════════════════════════════
+function saveHistory(){historyStack.push(JSON.stringify(elements));if(historyStack.length>50)historyStack.shift();historyDirty=false;}
+function saveHistoryOnce(){if(!historyDirty){saveHistory();historyDirty=true;}}
+function undo(){
+  if(!historyStack.length) return;
   document.getElementById('canvas').querySelectorAll('.el').forEach(d=>d.remove());
-  elements = JSON.parse(historyStack.pop());
+  elements=JSON.parse(historyStack.pop());
   elements.forEach(el=>renderEl(el));
-  updateLayers(); updatePropsPanel();
-  document.getElementById('canvas-hint').style.display = elements.length ? 'none' : '';
+  updateLayers();updatePropsPanel();
+  document.getElementById('canvas-hint').style.display=elements.length?'none':'';
 }
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  EXPORT
-// ═══════════════════════════════════════════════════
-async function exportCanvas() {
+// ══════════════════════════════════════════════
+async function exportCanvas(){
   const btn=document.getElementById('export-btn');
-  btn.textContent='Exporting…'; btn.disabled=true;
+  btn.textContent='…';btn.disabled=true;
   const prevSel=selectedId;
-  if (prevSel){const d=document.getElementById(prevSel);if(d)d.classList.remove('selected');}
-  try {
-    const result=await html2canvas(document.getElementById('canvas'),{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,width:canvasW,height:canvasH});
-    const a=document.createElement('a'); a.download='grida-export.png'; a.href=result.toDataURL('image/png'); a.click();
-  } catch(e){alert('Export failed.');}
-  if (prevSel){const d=document.getElementById(prevSel);if(d)d.classList.add('selected');}
-  btn.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M8 2v9M5 8l3 3 3-3M2 13h12"/></svg> Export PNG`;
+  if(prevSel){const d=document.getElementById(prevSel);if(d)d.classList.remove('selected');}
+  // temporarily reset canvas transform for export
+  const cv=document.getElementById('canvas');
+  const savedTransform=cv.style.transform;
+  cv.style.transform='none';
+  try{
+    const result=await html2canvas(cv,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,width:canvasW,height:canvasH});
+    const a=document.createElement('a');a.download='grida-export.png';a.href=result.toDataURL('image/png');a.click();
+  }catch(e){alert('Export failed.');}
+  cv.style.transform=savedTransform;
+  if(prevSel){const d=document.getElementById(prevSel);if(d)d.classList.add('selected');}
+  btn.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M8 2v9M5 8l3 3 3-3M2 13h12"/></svg><span class="hide-xs">Export</span>`;
   btn.disabled=false;
 }
 
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════════
-window.addEventListener('resize', updateCanvasDisplay);
-updateCanvasDisplay();
+// ══════════════════════════════════════════════
+window.addEventListener('resize',()=>{if(window.innerWidth>700)zoomFit();});
+zoomFit();
 </script>
 </body>
 </html>
